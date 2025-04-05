@@ -2,6 +2,18 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkWorld.Global.API", "ThinkWorld.Global.API\ThinkWorld.Global.API.csproj", "{6B0D27E7-9413-4984-878F-FE88E25D0BEF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkWorld.PII.Router.API", "ThinkWorld.PII.Router.API\ThinkWorld.PII.Router.API.csproj", "{838FFF0F-F170-4F00-A38B-6C6B29D67FFB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkWorld.PII.API", "ThinkWorld.PII.API\ThinkWorld.PII.API.csproj", "{468EF870-331E-4925-A94E-8648C5D030BC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkWorld.Global.Processor", "ThinkWorld.Global.Processor\ThinkWorld.Global.Processor.csproj", "{24F45BF8-825C-4578-A03C-A5893E4FF368}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkWorld.PII.Processor", "ThinkWorld.PII.Processor\ThinkWorld.PII.Processor.csproj", "{98DD7A81-0E7B-4B53-8DB4-CDC88D768454}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkWorld.Services", "ThinkWorld.Services\ThinkWorld.Services.csproj", "{631AEE9B-70DC-4840-94A4-EB1AACF2A3D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkWorld.Domain", "ThinkWorld.Domain\ThinkWorld.Domain.csproj", "{8ABA0A7A-8F78-41A5-8DD9-A1C2A5DD4A26}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +24,29 @@ Global
 		{6B0D27E7-9413-4984-878F-FE88E25D0BEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B0D27E7-9413-4984-878F-FE88E25D0BEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6B0D27E7-9413-4984-878F-FE88E25D0BEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{838FFF0F-F170-4F00-A38B-6C6B29D67FFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{838FFF0F-F170-4F00-A38B-6C6B29D67FFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{838FFF0F-F170-4F00-A38B-6C6B29D67FFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{838FFF0F-F170-4F00-A38B-6C6B29D67FFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{468EF870-331E-4925-A94E-8648C5D030BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{468EF870-331E-4925-A94E-8648C5D030BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{468EF870-331E-4925-A94E-8648C5D030BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{468EF870-331E-4925-A94E-8648C5D030BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24F45BF8-825C-4578-A03C-A5893E4FF368}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24F45BF8-825C-4578-A03C-A5893E4FF368}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24F45BF8-825C-4578-A03C-A5893E4FF368}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24F45BF8-825C-4578-A03C-A5893E4FF368}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98DD7A81-0E7B-4B53-8DB4-CDC88D768454}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98DD7A81-0E7B-4B53-8DB4-CDC88D768454}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98DD7A81-0E7B-4B53-8DB4-CDC88D768454}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98DD7A81-0E7B-4B53-8DB4-CDC88D768454}.Release|Any CPU.Build.0 = Release|Any CPU
+		{631AEE9B-70DC-4840-94A4-EB1AACF2A3D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{631AEE9B-70DC-4840-94A4-EB1AACF2A3D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{631AEE9B-70DC-4840-94A4-EB1AACF2A3D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{631AEE9B-70DC-4840-94A4-EB1AACF2A3D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8ABA0A7A-8F78-41A5-8DD9-A1C2A5DD4A26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8ABA0A7A-8F78-41A5-8DD9-A1C2A5DD4A26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8ABA0A7A-8F78-41A5-8DD9-A1C2A5DD4A26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8ABA0A7A-8F78-41A5-8DD9-A1C2A5DD4A26}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
