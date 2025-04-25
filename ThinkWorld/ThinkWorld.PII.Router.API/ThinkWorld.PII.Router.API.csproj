@@ -15,4 +15,8 @@
         <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.0.0"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\ThinkWorld.Services\ThinkWorld.Services.csproj" />
+    </ItemGroup>
+
 </Project>

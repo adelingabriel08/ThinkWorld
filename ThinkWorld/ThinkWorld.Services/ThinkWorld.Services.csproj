@@ -7,12 +7,18 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Azure.Identity" Version="1.11.4" />
       <PackageReference Include="MediatR" Version="12.5.0" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Cosmos" Version="9.0.4" />
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="Commands\" />
       <Folder Include="Results\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ThinkWorld.Domain\ThinkWorld.Domain.csproj" />
     </ItemGroup>
 
 </Project>
