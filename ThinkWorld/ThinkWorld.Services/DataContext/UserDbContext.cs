@@ -5,7 +5,7 @@ namespace ThinkWorld.Services.DataContext;
 
 public class UserDbContext : DbContext
 {
-    public UserDbContext(DbContextOptions<CosmosDbContext> options) : base(options)
+    public UserDbContext(DbContextOptions<UserDbContext> options) : base(options)
     {
     }
 

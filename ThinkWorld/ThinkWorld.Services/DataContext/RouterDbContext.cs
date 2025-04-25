@@ -1,12 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ThinkWorld.Domain.Aggregates;
 using ThinkWorld.Domain.Entities.Router;
 
 namespace ThinkWorld.Services.DataContext;
 
 public class RouterDbContext : DbContext
 {
-    public RouterDbContext(DbContextOptions<CosmosDbContext> options) : base(options)
+    public RouterDbContext(DbContextOptions<RouterDbContext> options) : base(options)
     {
     }
 
