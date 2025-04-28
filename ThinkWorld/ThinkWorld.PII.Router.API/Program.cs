@@ -4,6 +4,7 @@ using ThinkWorld.Domain.Entities.Router;
 using ThinkWorld.Domain.Events.Commands.Router;
 using ThinkWorld.Events.Handlers.Handlers.Router;
 using ThinkWorld.Services;
+using ThinkWorld.Services.DataContext;
 using ThinkWorld.Services.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,6 +29,15 @@ builder.Services.AddMediatR(cfg =>
 
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<RouterDbContext>();
+    await dbContext.Database.EnsureCreatedAsync();
+    
+    // Seed initial data if needed
+    await dbContext.SeedRegionsAsync();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

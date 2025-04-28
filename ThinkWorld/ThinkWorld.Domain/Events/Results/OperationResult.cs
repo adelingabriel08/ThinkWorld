@@ -26,7 +26,7 @@ public record OperationResult<T> : OperationResult
 
 public record OperationResult
 {
-    public string[] Errors { get; init; }
+    public string[] Errors { get; init; } = Array.Empty<string>();
     public bool HasErrors => Errors.Length > 0;
     
     protected OperationResult()
