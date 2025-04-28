@@ -66,11 +66,44 @@ app.MapPost("/api/router/user", async (AddOrUpdateRoutedUserCmd cmd, HttpContext
     .WithOpenApi()
     .Produces<RoutedUser>()
     .Produces(StatusCodes.Status400BadRequest);
+
+app.MapGet("/api/router/user", async (string email, HttpContext httpContext, IMediator mediator) =>
+    {
+        var result = await mediator.Send(new GetRoutedUserCmd(email), httpContext.RequestAborted);
+
+        if (result.HasErrors)
+        {
+            return Results.BadRequest(result.Errors);
+        }
+        
+        if (result.Result == null)
+        {
+            return Results.NotFound();
+        }
+
+        return Results.Ok(result.Result);
+    })
+    .WithName("GetRoutedUser")
+    .WithOpenApi()
+    .Produces<RoutedUser>()
+    .Produces(StatusCodes.Status400BadRequest)
+    .Produces(StatusCodes.Status404NotFound);
     // .RequireAuthorization();
 
-app.Run();
+app.MapGet("/api/router/regions", async (HttpContext httpContext, IMediator mediator) =>
+    {
+        var result = await mediator.Send(new GetPiiRegionsCmd(), httpContext.RequestAborted);
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+        if (result.HasErrors)
+        {
+            return Results.BadRequest(result.Errors);
+        }
+
+        return Results.Ok(result.Result);
+    })
+    .WithName("GetPiiRegions")
+    .WithOpenApi()
+    .Produces<RoutedUser>()
+    .Produces(StatusCodes.Status400BadRequest);
+
+app.Run();

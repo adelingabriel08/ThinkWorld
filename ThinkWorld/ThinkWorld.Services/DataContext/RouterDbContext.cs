@@ -25,7 +25,7 @@ public class RouterDbContext : DbContext
     public async Task SeedRegionsAsync(CancellationToken cancellationToken = default)
     {
         var region = await Regions
-            .SingleOrDefaultAsync(r => r.Name == "UK South", cancellationToken);
+            .FirstOrDefaultAsync(r => r.Name == "UK South", cancellationToken);
         if (region != null)
         {
             // region already exists

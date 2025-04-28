@@ -33,7 +33,7 @@ public class AddOrUpdateRouterUserHandler : IRequestHandler<AddOrUpdateRoutedUse
         
         // point read
         var region = await _routerDbContext.Regions
-            .SingleOrDefaultAsync(r => r.Id == request.RegionId, cancellationToken);
+            .FirstOrDefaultAsync(r => r.Id == request.RegionId, cancellationToken);
         
         if (region == null)
         {
@@ -43,7 +43,7 @@ public class AddOrUpdateRouterUserHandler : IRequestHandler<AddOrUpdateRoutedUse
         var userKey = _userIdGenerator.ComputeUserIdAsync(request.Email);
         
         var user = await _routerDbContext.Users
-            .SingleOrDefaultAsync(u => u.Id == userKey, cancellationToken);
+            .FirstOrDefaultAsync(u => u.Id == userKey, cancellationToken);
         
         if (user == null)
         {
