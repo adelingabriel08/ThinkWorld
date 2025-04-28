@@ -18,8 +18,8 @@ public class RouterDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
         
-        modelBuilder.Entity<RoutedComment>().ToContainer("Comments").HasPartitionKey(c => c.UserId);
-        modelBuilder.Entity<RoutedUser>().ToContainer("Users").HasPartitionKey(cp => cp.Id);
-        modelBuilder.Entity<RoutingRegion>().ToContainer("Regions").HasPartitionKey(cp => cp.Id);
+        modelBuilder.Entity<RoutedComment>().ToContainer("Comments").HasPartitionKey(c => c.UserId).UseETagConcurrency();
+        modelBuilder.Entity<RoutedUser>().ToContainer("Users").HasPartitionKey(cp => cp.Id).UseETagConcurrency();
+        modelBuilder.Entity<RoutingRegion>().ToContainer("Regions").HasPartitionKey(cp => cp.Id).UseETagConcurrency();
     }
 }

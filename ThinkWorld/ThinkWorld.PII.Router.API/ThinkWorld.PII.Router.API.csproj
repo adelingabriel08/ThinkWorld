@@ -8,14 +8,17 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="MediatR" Version="12.5.0" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" NoWarn="NU1605"/>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.0" NoWarn="NU1605"/>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0"/>
         <PackageReference Include="Microsoft.Identity.Web" Version="3.0.0"/>
         <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.0.0"/>
+        <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="8.1.1" />
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\ThinkWorld.Events.Handlers\ThinkWorld.Events.Handlers.csproj" />
       <ProjectReference Include="..\ThinkWorld.Services\ThinkWorld.Services.csproj" />
     </ItemGroup>
 

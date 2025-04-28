@@ -1,6 +1,7 @@
 ﻿using Azure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using ThinkWorld.Domain.Events.Commands.Router;
 using ThinkWorld.Services.DataContext;
 using ThinkWorld.Services.Options;
 
@@ -59,6 +60,12 @@ public static class ServicesExtensions
             services.AddDbContext<UserDbContext>(o => o.UseCosmos(options.Endpoint, options.EndpointKey!, options.DatabaseName));
         }
 
+        return services;
+    }
+    
+    public static IServiceCollection AddCommonServices(this IServiceCollection services)
+    {
+        services.AddScoped<IUserIdGenerator, UserIdGenerator>();
         return services;
     }
 }

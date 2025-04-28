@@ -1,8 +1,9 @@
 ﻿namespace ThinkWorld.Domain.Entities.Router;
 
-public record RoutedUser
+public class RoutedUser
 {
-    public required string Id { get; init; }
-    public required DateTime CreatedAt { get; init; }
-    public required Guid RegionId { get; init; }
+    public required string Id { get; set; }
+    public required DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public required Guid RegionId { get; set; }
 }

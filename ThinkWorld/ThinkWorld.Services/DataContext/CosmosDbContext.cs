@@ -17,7 +17,7 @@ public class CosmosDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
         
-        modelBuilder.Entity<Community>().ToContainer("Communities").HasPartitionKey(c => c.Id);
-        modelBuilder.Entity<CommunityPost>().ToContainer("Posts").HasPartitionKey(cp => cp.CommunityId);
+        modelBuilder.Entity<Community>().ToContainer("Communities").HasPartitionKey(c => c.Id).UseETagConcurrency();
+        modelBuilder.Entity<CommunityPost>().ToContainer("Posts").HasPartitionKey(cp => cp.CommunityId).UseETagConcurrency();
     }
 }

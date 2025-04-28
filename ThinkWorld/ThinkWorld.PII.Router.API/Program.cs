@@ -1,17 +1,16 @@
-using Microsoft.AspNetCore.Authentication;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Identity.Web;
-using Microsoft.Identity.Abstractions;
-using Microsoft.Identity.Web.Resource;
+using ThinkWorld.Domain.Entities.Router;
+using ThinkWorld.Domain.Events.Commands.Router;
+using ThinkWorld.Events.Handlers.Handlers.Router;
 using ThinkWorld.Services;
 using ThinkWorld.Services.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
-builder.Services.AddAuthorization();
+// builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
+// builder.Services.AddAuthorization();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -21,6 +20,12 @@ builder.Services.AddOptions<RouterDatabaseOptions>().ValidateOnStart();
 var databaseOptions = builder.Configuration.GetSection(nameof(RouterDatabaseOptions)).Get<RouterDatabaseOptions>();
 
 builder.Services.AddRouterCosmosContext(databaseOptions!);
+builder.Services.AddCommonServices();
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssemblyContaining<AddOrUpdateRouterUserHandler>();
+});
+
 
 var app = builder.Build();
 
@@ -28,33 +33,30 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwaggerUI(r => 
+    {
+        r.SwaggerEndpoint("/openapi/v1.json", "ThinkWorld PII Router API V1");
+    });
 }
 
 app.UseHttpsRedirection();
 
-var scopeRequiredByApi = app.Configuration["AzureAd:Scopes"] ?? "";
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", (HttpContext httpContext) =>
+app.MapPost("/api/router/user", async (AddOrUpdateRoutedUserCmd cmd, HttpContext httpContext, IMediator mediator) =>
     {
-        httpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
+        var result = await mediator.Send(cmd, httpContext.RequestAborted);
 
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
+        if (result.HasErrors)
+        {
+            return Results.BadRequest(result.Errors);
+        }
+
+        return Results.Ok(result.Result);
     })
-    .WithName("GetWeatherForecast")
+    .WithName("AddOrUpdateUser")
     .WithOpenApi()
-    .RequireAuthorization();
+    .Produces<RoutedUser>()
+    .Produces(StatusCodes.Status400BadRequest);
+    // .RequireAuthorization();
 
 app.Run();
 

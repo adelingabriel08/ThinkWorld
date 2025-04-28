@@ -13,11 +13,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Commands\" />
-      <Folder Include="Results\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\ThinkWorld.Domain\ThinkWorld.Domain.csproj" />
     </ItemGroup>
 
