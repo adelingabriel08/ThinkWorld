@@ -16,6 +16,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkWorld.Domain", "ThinkW
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkWorld.Events.Handlers", "ThinkWorld.Events.Handlers\ThinkWorld.Events.Handlers.csproj", "{37596F4F-8C85-450D-9CEF-03C43E5C8310}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkWorld.PII.Router.Handlers", "ThinkWorld.PII.Router.Handlers\ThinkWorld.PII.Router.Handlers.csproj", "{5CF9E9E0-4AC7-4F18-B1EA-3B0C5AF6A37B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkWorld.Pii.Handlers", "ThinkWorld.Pii.Handlers\ThinkWorld.Pii.Handlers.csproj", "{D4C29710-B00C-4376-8EE0-A81E898D1C89}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -54,5 +58,13 @@ Global
 		{37596F4F-8C85-450D-9CEF-03C43E5C8310}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{37596F4F-8C85-450D-9CEF-03C43E5C8310}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{37596F4F-8C85-450D-9CEF-03C43E5C8310}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CF9E9E0-4AC7-4F18-B1EA-3B0C5AF6A37B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CF9E9E0-4AC7-4F18-B1EA-3B0C5AF6A37B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CF9E9E0-4AC7-4F18-B1EA-3B0C5AF6A37B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CF9E9E0-4AC7-4F18-B1EA-3B0C5AF6A37B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4C29710-B00C-4376-8EE0-A81E898D1C89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4C29710-B00C-4376-8EE0-A81E898D1C89}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4C29710-B00C-4376-8EE0-A81E898D1C89}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4C29710-B00C-4376-8EE0-A81E898D1C89}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

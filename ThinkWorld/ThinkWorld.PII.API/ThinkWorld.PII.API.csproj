@@ -17,7 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ThinkWorld.Events.Handlers\ThinkWorld.Events.Handlers.csproj" />
+      <ProjectReference Include="..\ThinkWorld.Pii.Handlers\ThinkWorld.Pii.Handlers.csproj" />
       <ProjectReference Include="..\ThinkWorld.Services\ThinkWorld.Services.csproj" />
     </ItemGroup>
 

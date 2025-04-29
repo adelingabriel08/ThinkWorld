@@ -1,8 +1,7 @@
 using MediatR;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using ThinkWorld.Domain.Entities.Router;
 using ThinkWorld.Domain.Events.Commands.Router;
-using ThinkWorld.Events.Handlers.Handlers.Router;
+using ThinkWorld.PII.Router.Handlers;
 using ThinkWorld.Services;
 using ThinkWorld.Services.DataContext;
 using ThinkWorld.Services.Options;
@@ -22,10 +21,7 @@ var databaseOptions = builder.Configuration.GetSection(nameof(RouterDatabaseOpti
 
 builder.Services.AddRouterCosmosContext(databaseOptions!);
 builder.Services.AddCommonServices();
-builder.Services.AddMediatR(cfg =>
-{
-    cfg.RegisterServicesFromAssemblyContaining<AddOrUpdateRouterUserHandler>();
-});
+builder.Services.AddRouterHandlers();
 
 
 var app = builder.Build();

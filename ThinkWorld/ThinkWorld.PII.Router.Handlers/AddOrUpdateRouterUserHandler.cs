@@ -6,7 +6,7 @@ using ThinkWorld.Domain.Events.Results;
 using ThinkWorld.Services;
 using ThinkWorld.Services.DataContext;
 
-namespace ThinkWorld.Events.Handlers.Handlers.Router;
+namespace ThinkWorld.PII.Router.Handlers;
 
 public class AddOrUpdateRouterUserHandler : IRequestHandler<AddOrUpdateRoutedUserCmd, OperationResult<RoutedUser>>
 {

@@ -5,7 +5,7 @@ using ThinkWorld.Domain.Events.Commands.Router;
 using ThinkWorld.Domain.Events.Results;
 using ThinkWorld.Services.DataContext;
 
-namespace ThinkWorld.Events.Handlers.Handlers.Router;
+namespace ThinkWorld.PII.Router.Handlers;
 
 public class GetPiiRegionsHandler : IRequestHandler<GetPiiRegionsCmd, OperationResult<List<RoutingRegion>>>
 {

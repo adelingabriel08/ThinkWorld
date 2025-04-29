@@ -1,11 +1,6 @@
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Identity.Web;
-using Microsoft.Identity.Abstractions;
 using Microsoft.Identity.Web.Resource;
-using ThinkWorld.Events.Handlers.Handlers.Community;
-using ThinkWorld.Events.Handlers.Handlers.Router;
-using ThinkWorld.Events.Handlers.Handlers.User;
+using ThinkWorld.Pii.Handlers;
 using ThinkWorld.Services;
 using ThinkWorld.Services.DataContext;
 using ThinkWorld.Services.Options;
@@ -25,11 +20,7 @@ var databaseOptions = builder.Configuration.GetSection(nameof(PiiDatabaseOptions
 builder.Services.AddPiiCosmosContext(databaseOptions!);
 
 builder.Services.AddCommonServices();
-// builder.Services.AddMediatR(cfg =>
-// {
-//     cfg.RegisterServicesFromAssemblyContaining<CreateUserHandler>();
-// });
-
+builder.Services.AddPiiHandlers();
 
 var app = builder.Build();
 

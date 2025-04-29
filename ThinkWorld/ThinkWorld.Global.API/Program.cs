@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Abstractions;
 using Microsoft.Identity.Web.Resource;
+using ThinkWorld.Events.Handlers;
 using ThinkWorld.Events.Handlers.Handlers.Community;
 using ThinkWorld.Events.Handlers.Handlers.User;
 using ThinkWorld.Services;
@@ -24,11 +25,7 @@ var globalDatabaseOptions = builder.Configuration.GetSection(nameof(GlobalDataba
 
 builder.Services.AddGlobalCosmosContext(globalDatabaseOptions!);
 builder.Services.AddCommonServices();
-// builder.Services.AddMediatR(cfg =>
-// {
-//     cfg.RegisterServicesFromAssemblyContaining<CreateCommunityHandler>();
-// });
-
+builder.Services.AddHandlers();
 
 var app = builder.Build();
 
