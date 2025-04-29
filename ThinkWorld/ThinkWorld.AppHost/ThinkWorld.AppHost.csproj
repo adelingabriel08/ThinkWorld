@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <Sdk Name="Aspire.AppHost.Sdk" Version="9.2.1"/>
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <UserSecretsId>902123eb-14ab-403b-9f14-d6552f46d88a</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Aspire.Hosting.AppHost" Version="9.2.1"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ThinkWorld.Global.API\ThinkWorld.Global.API.csproj" />
+      <ProjectReference Include="..\ThinkWorld.PII.API\ThinkWorld.PII.API.csproj" />
+      <ProjectReference Include="..\ThinkWorld.PII.Router.API\ThinkWorld.PII.Router.API.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkWorld.PII.Router.Handl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkWorld.Pii.Handlers", "ThinkWorld.Pii.Handlers\ThinkWorld.Pii.Handlers.csproj", "{D4C29710-B00C-4376-8EE0-A81E898D1C89}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkWorld.AppHost", "ThinkWorld.AppHost\ThinkWorld.AppHost.csproj", "{0CE19009-84EA-411E-9489-76B09688CCB3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -66,5 +68,9 @@ Global
 		{D4C29710-B00C-4376-8EE0-A81E898D1C89}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D4C29710-B00C-4376-8EE0-A81E898D1C89}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D4C29710-B00C-4376-8EE0-A81E898D1C89}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CE19009-84EA-411E-9489-76B09688CCB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CE19009-84EA-411E-9489-76B09688CCB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CE19009-84EA-411E-9489-76B09688CCB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CE19009-84EA-411E-9489-76B09688CCB3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
