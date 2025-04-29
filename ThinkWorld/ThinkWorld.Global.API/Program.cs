@@ -1,8 +1,16 @@
+using System.ComponentModel.DataAnnotations;
+using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Abstractions;
 using Microsoft.Identity.Web.Resource;
+using ThinkWorld.Domain.Aggregates;
+using ThinkWorld.Domain.Entities.Router;
+using ThinkWorld.Domain.Events.Commands.Community;
+using ThinkWorld.Domain.Events.Commands.Post;
+using ThinkWorld.Domain.Events.Commands.Router;
 using ThinkWorld.Events.Handlers;
 using ThinkWorld.Events.Handlers.Handlers.Community;
 using ThinkWorld.Events.Handlers.Handlers.User;
@@ -47,33 +55,90 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var scopeRequiredByApi = app.Configuration["AzureAd:Scopes"] ?? "";
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", (HttpContext httpContext) =>
+app.MapPost("/api/community", async (AddOrUpdateCommunityCmd cmd, HttpContext httpContext, IMediator mediator) =>
     {
-        httpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
+        var result = await mediator.Send(cmd, httpContext.RequestAborted);
 
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
+        if (result.HasErrors)
+        {
+            return Results.BadRequest(result.Errors);
+        }
+
+        return Results.Ok(result.Result);
     })
-    .WithName("GetWeatherForecast")
-    .WithOpenApi();
-    //.RequireAuthorization();
+    .WithName("AddOrUpdateCommunity")
+    .WithOpenApi()
+    .Produces<Community>()
+    .Produces(StatusCodes.Status400BadRequest);
 
+app.MapPost("/api/post", async (AddOrUpdatePostCmd cmd, HttpContext httpContext, IMediator mediator) =>
+    {
+        var result = await mediator.Send(cmd, httpContext.RequestAborted);
+
+        if (result.HasErrors)
+        {
+            return Results.BadRequest(result.Errors);
+        }
+
+        return Results.Ok(result.Result);
+    })
+    .WithName("AddOrUpdatePost")
+    .WithOpenApi()
+    .Produces<CommunityPost>()
+    .Produces(StatusCodes.Status400BadRequest);
+
+app.MapDelete("/api/{communityId}/post", async ([FromRoute] Guid communityId, Guid postId, string email, HttpContext httpContext, IMediator mediator) =>
+    {
+        var result = await mediator.Send(new DeletePostCmd(postId, communityId, email), httpContext.RequestAborted);
+
+        if (result.HasErrors)
+        {
+            return Results.BadRequest(result.Errors);
+        }
+
+        return Results.NoContent();
+    })
+    .WithName("DeletePost")
+    .WithOpenApi()
+    .Produces(StatusCodes.Status400BadRequest)
+    .Produces(StatusCodes.Status204NoContent);
+
+app.MapGet("/api/community", async (HttpContext httpContext, IMediator mediator) =>
+    {
+        var result = await mediator.Send(new GetCommunitiesCmd(), httpContext.RequestAborted);
+
+        if (result.HasErrors)
+        {
+            return Results.BadRequest(result.Errors);
+        }
+        
+        if (result.Result == null)
+        {
+            return Results.NotFound();
+        }
+
+        return Results.Ok(result.Result);
+    })
+    .WithName("GetCommunities")
+    .WithOpenApi()
+    .Produces<List<Community>>()
+    .Produces(StatusCodes.Status400BadRequest);
+// .RequireAuthorization();
+
+app.MapGet("/api/post", async (Guid? communityId, string email, HttpContext httpContext, IMediator mediator) =>
+    {
+        var result = await mediator.Send(new GetPostsCmd(communityId, email), httpContext.RequestAborted);
+
+        if (result.HasErrors)
+        {
+            return Results.BadRequest(result.Errors);
+        }
+
+        return Results.Ok(result.Result);
+    })
+    .WithName("GetPosts")
+    .WithOpenApi()
+    .Produces<List<CommunityPost>>()
+    .Produces(StatusCodes.Status400BadRequest);
+    
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
