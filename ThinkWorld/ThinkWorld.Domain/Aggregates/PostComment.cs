@@ -2,9 +2,9 @@ namespace ThinkWorld.Domain.Aggregates;
 
 public record PostComment
 {
-    public Guid PostId { get; init; }
-    public Guid Id { get; init; }
-    public string Content { get; init; } = string.Empty;
-    public Guid CreatedBy { get; init; }
-    public DateTime CreatedAt { get; init; }
+    public Guid PostId { get; set; }
+    public Guid Id { get; set; }
+    public string Content { get; set; } = string.Empty;
+    public string CreatedBy { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
 }

@@ -4,6 +4,6 @@ public record PostVote
 {
     public Guid Id { get; init; }
     public Guid PostId { get; init; }
-    public Guid UserId { get; init; }
-    public bool IsUpvote { get; init; }
+    public string UserId { get; init; }
+    public bool IsUpvote { get; set; }
 }

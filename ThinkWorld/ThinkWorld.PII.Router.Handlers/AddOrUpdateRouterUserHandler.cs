@@ -40,7 +40,7 @@ public class AddOrUpdateRouterUserHandler : IRequestHandler<AddOrUpdateRoutedUse
             return OperationResult<RoutedUser>.Failed("Region not found.");
         }
         
-        var userKey = _userIdGenerator.ComputeUserIdAsync(request.Email);
+        var userKey = _userIdGenerator.ComputeUserId(request.Email);
         
         var user = await _routerDbContext.Users
             .FirstOrDefaultAsync(u => u.Id == userKey, cancellationToken);

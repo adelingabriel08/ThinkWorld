@@ -35,7 +35,7 @@ public class DeletePostHandler : IRequestHandler<DeletePostCmd, OperationResult>
             return OperationResult.Failed("Email cannot be empty.");
         }
         
-        var userId = _userIdGenerator.ComputeUserIdAsync(request.Email);
+        var userId = _userIdGenerator.ComputeUserId(request.Email);
         
         var post = await _context.Posts
             .FirstOrDefaultAsync(p => p.Id == request.PostId && request.CommunityId == p.CommunityId, cancellationToken);

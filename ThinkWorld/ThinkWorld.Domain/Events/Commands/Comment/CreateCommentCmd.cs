@@ -6,6 +6,7 @@ namespace ThinkWorld.Domain.Events.Commands.Comment;
 
 public record CreateCommentCmd : IRequest<OperationResult<PostComment>>
 {
-    public Guid? PostId { get; init; }
-    public string? Content { get; init; }
+    public Guid PostId { get; init; }
+    public string Content { get; init; }
+    public string Email { get; init; }
 }

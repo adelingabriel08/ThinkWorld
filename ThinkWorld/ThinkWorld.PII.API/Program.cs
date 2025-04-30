@@ -1,5 +1,12 @@
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web.Resource;
+using ThinkWorld.Domain.Aggregates;
+using ThinkWorld.Domain.Events.Commands.Comment;
+using ThinkWorld.Domain.Events.Commands.Community;
+using ThinkWorld.Domain.Events.Commands.Post;
+using ThinkWorld.Domain.Events.Commands.User;
 using ThinkWorld.Pii.Handlers;
 using ThinkWorld.Services;
 using ThinkWorld.Services.DataContext;
@@ -43,33 +50,129 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var scopeRequiredByApi = app.Configuration["AzureAd:Scopes"] ?? "";
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", (HttpContext httpContext) =>
+app.MapPost("/api/comment", async (CreateCommentCmd cmd, HttpContext httpContext, IMediator mediator) =>
     {
-        httpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
+        var result = await mediator.Send(cmd, httpContext.RequestAborted);
 
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
+        if (result.HasErrors)
+        {
+            return Results.BadRequest(result.Errors);
+        }
+
+        return Results.Ok(result.Result);
     })
-    .WithName("GetWeatherForecast")
-    .WithOpenApi();
-    //.RequireAuthorization();
+    .WithName("CreatePostComment")
+    .WithOpenApi()
+    .Produces<PostComment>()
+    .Produces(StatusCodes.Status400BadRequest);
+
+app.MapDelete("/api/comment/{commentId}", async ([FromRoute] Guid commentId, string email, HttpContext httpContext, IMediator mediator) =>
+    {
+        var result = await mediator.Send(new DeleteCommentCmd(commentId, email), httpContext.RequestAborted);
+
+        if (result.HasErrors)
+        {
+            return Results.BadRequest(result.Errors);
+        }
+
+        return Results.NoContent();
+    })
+    .WithName("DeletePostComment")
+    .WithOpenApi()
+    .Produces(StatusCodes.Status400BadRequest)
+    .Produces(StatusCodes.Status204NoContent);
+
+app.MapGet("/api/post/{postId}/comments", async (Guid postId, HttpContext httpContext, IMediator mediator) =>
+    {
+        var result = await mediator.Send(new GetPostCommentsCmd(postId), httpContext.RequestAborted);
+
+        if (result.HasErrors)
+        {
+            return Results.BadRequest(result.Errors);
+        }
+        
+        if (result.Result == null)
+        {
+            return Results.NotFound();
+        }
+
+        return Results.Ok(result.Result);
+    })
+    .WithName("GetPostComments")
+    .WithOpenApi()
+    .Produces<List<PostComment>>()
+    .Produces(StatusCodes.Status400BadRequest);
+
+
+app.MapPost("/api/user", async (AddOrUpdateUserCmd cmd, HttpContext httpContext, IMediator mediator) =>
+    {
+        var result = await mediator.Send(cmd, httpContext.RequestAborted);
+
+        if (result.HasErrors)
+        {
+            return Results.BadRequest(result.Errors);
+        }
+
+        return Results.Ok(result.Result);
+    })
+    .WithName("AddOrUpdateUserDetails")
+    .WithOpenApi()
+    .Produces<User>()
+    .Produces(StatusCodes.Status400BadRequest);
+
+app.MapDelete("/api/user/annonymise", async (string email, HttpContext httpContext, IMediator mediator) =>
+    {
+        var result = await mediator.Send(new AnnonymiseUserCmd(email), httpContext.RequestAborted);
+
+        if (result.HasErrors)
+        {
+            return Results.BadRequest(result.Errors);
+        }
+
+        return Results.NoContent();
+    })
+    .WithName("AnnonymiseUser")
+    .WithOpenApi()
+    .Produces(StatusCodes.Status400BadRequest)
+    .Produces(StatusCodes.Status204NoContent);
+
+app.MapGet("/api/user", async (string email, HttpContext httpContext, IMediator mediator) =>
+    {
+        var result = await mediator.Send(new GetUserInfoCmd(email), httpContext.RequestAborted);
+
+        if (result.HasErrors)
+        {
+            return Results.BadRequest(result.Errors);
+        }
+        
+        if (result.Result == null)
+        {
+            return Results.NotFound();
+        }
+
+        return Results.Ok(result.Result);
+    })
+    .WithName("GetUserDetails")
+    .WithOpenApi()
+    .Produces<User>()
+    .Produces(StatusCodes.Status400BadRequest);
+
+app.MapPost("/api/post/vote", async (AddOrUpdatePostVoteCmd cmd, HttpContext httpContext, IMediator mediator) =>
+    {
+        var result = await mediator.Send(cmd, httpContext.RequestAborted);
+
+        if (result.HasErrors)
+        {
+            return Results.BadRequest(result.Errors);
+        }
+
+        return Results.Ok(result.Result);
+    })
+    .WithName("AddOrUpdatePostVote")
+    .WithOpenApi()
+    .Produces<PostVote>()
+    .Produces(StatusCodes.Status400BadRequest);
+
+// .RequireAuthorization();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

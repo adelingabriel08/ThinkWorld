@@ -18,8 +18,8 @@ public class UserDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
         
-        modelBuilder.Entity<PostComment>().ToContainer("Comments").HasPartitionKey(c => c.CreatedBy).UseETagConcurrency();
+        modelBuilder.Entity<PostComment>().ToContainer("Comments").HasPartitionKey(c => c.PostId).UseETagConcurrency();
         modelBuilder.Entity<User>().ToContainer("Users").HasPartitionKey(cp => cp.Id).UseETagConcurrency();
-        modelBuilder.Entity<PostVote>().ToContainer("PostVotes").HasPartitionKey(cp => cp.UserId).UseETagConcurrency();
+        modelBuilder.Entity<PostVote>().ToContainer("PostVotes").HasPartitionKey(cp => cp.PostId).UseETagConcurrency();
     }
 }

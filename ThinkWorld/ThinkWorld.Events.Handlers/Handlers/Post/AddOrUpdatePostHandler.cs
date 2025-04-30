@@ -43,7 +43,7 @@ public class AddOrUpdatePostHandler : IRequestHandler<AddOrUpdatePostCmd, Operat
         
         // TODO add check for joined communities
         
-        var userId = _userIdGenerator.ComputeUserIdAsync(request.Email);
+        var userId = _userIdGenerator.ComputeUserId(request.Email);
         
         var community = await _context.Communities
             .FirstOrDefaultAsync(c => c.Id == request.CommunityId, cancellationToken);

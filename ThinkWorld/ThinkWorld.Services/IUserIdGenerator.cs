@@ -2,5 +2,5 @@
 
 public interface IUserIdGenerator
 {
-    string ComputeUserIdAsync(string email);
+    string ComputeUserId(string email);
 }

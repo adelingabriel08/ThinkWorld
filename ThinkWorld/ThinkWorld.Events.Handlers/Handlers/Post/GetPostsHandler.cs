@@ -33,7 +33,7 @@ public class GetPostsHandler : IRequestHandler<GetPostsCmd, OperationResult<List
             return OperationResult<List<CommunityPost>>.Failed("CommunityId cannot be empty");
         }
         
-        var userId = _userIdGenerator.ComputeUserIdAsync(request.Email);
+        var userId = _userIdGenerator.ComputeUserId(request.Email);
         
         var query = _context.Posts
             .AsQueryable();

@@ -21,7 +21,7 @@ public class GetRoutedUserHandler : IRequestHandler<GetRoutedUserCmd, OperationR
 
     public async Task<OperationResult<RoutedUser>> Handle(GetRoutedUserCmd request, CancellationToken cancellationToken)
     {
-        var userId = _userIdGenerator.ComputeUserIdAsync(request.Email);
+        var userId = _userIdGenerator.ComputeUserId(request.Email);
         
         var user = await _context.Users
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);

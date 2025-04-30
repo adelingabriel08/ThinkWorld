@@ -40,7 +40,7 @@ public class AddOrUpdateCommunityHandler : IRequestHandler<AddOrUpdateCommunityC
             return OperationResult<Domain.Aggregates.Community>.Failed("An image is required.");
         }
         
-        var userId = _userIdGenerator.ComputeUserIdAsync(request.Email);
+        var userId = _userIdGenerator.ComputeUserId(request.Email);
         
         if (request.Id != null)
         {
