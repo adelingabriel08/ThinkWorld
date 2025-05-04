@@ -22,6 +22,14 @@ var databaseOptions = builder.Configuration.GetSection(nameof(RouterDatabaseOpti
 builder.Services.AddRouterCosmosContext(databaseOptions!);
 builder.Services.AddCommonServices();
 builder.Services.AddRouterHandlers();
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        policy =>
+        {
+            policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
+        });
+});
 
 
 var app = builder.Build();
@@ -46,6 +54,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors();
 
 app.MapPost("/api/router/user", async (AddOrUpdateRoutedUserCmd cmd, HttpContext httpContext, IMediator mediator) =>
     {

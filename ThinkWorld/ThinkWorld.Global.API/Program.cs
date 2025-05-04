@@ -25,6 +25,14 @@ var globalDatabaseOptions = builder.Configuration.GetSection(nameof(GlobalDataba
 builder.Services.AddGlobalCosmosContext(globalDatabaseOptions!);
 builder.Services.AddCommonServices();
 builder.Services.AddHandlers();
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        policy =>
+        {
+            policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
+        });
+});
 
 var app = builder.Build();
 
@@ -45,6 +53,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors();
 
 app.MapPost("/api/community", async (AddOrUpdateCommunityCmd cmd, HttpContext httpContext, IMediator mediator) =>
     {

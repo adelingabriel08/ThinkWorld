@@ -28,6 +28,14 @@ builder.Services.AddPiiCosmosContext(databaseOptions!);
 
 builder.Services.AddCommonServices();
 builder.Services.AddPiiHandlers();
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        policy =>
+        {
+            policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
+        });
+});
 
 var app = builder.Build();
 
@@ -49,6 +57,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors();
 
 app.MapPost("/api/comment", async (CreateCommentCmd cmd, HttpContext httpContext, IMediator mediator) =>
     {
