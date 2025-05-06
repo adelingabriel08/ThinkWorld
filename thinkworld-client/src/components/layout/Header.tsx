@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, Search, User } from "lucide-react";
@@ -6,10 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { UserManager } from 'oidc-client-ts'; // Import UserManager from oidc-client-ts
+import oidcConfig from '@/oidcConfig';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+
+  const logout = () => {
+    const userManager = new UserManager(oidcConfig);
+    userManager.signoutRedirect()
+      .catch(err => console.error('Logout failed', err));
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b shadow-sm">
@@ -81,6 +88,9 @@ const Header = () => {
             <AvatarImage src="https://github.com/shadcn.png" />
             <AvatarFallback>U</AvatarFallback>
           </Avatar>
+          <Button variant="ghost" size="sm" onClick={logout}>
+            Logout
+          </Button>
         </div>
       </div>
     </header>
