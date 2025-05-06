@@ -1,4 +1,3 @@
-
 // API configuration
 const PII_API_URL = "https://localhost:7152";
 const GLOBAL_API_URL = "https://localhost:7184";
@@ -6,10 +5,22 @@ const GLOBAL_API_URL = "https://localhost:7184";
 // Mock email for development
 const MOCK_USER_EMAIL = "user@example.com";
 
+// Helper function to get the access token
+async function getAccessToken() {
+  const token = localStorage.getItem('access_token');
+  if (!token) throw new Error('Access token not found');
+  return token;
+}
+
 // User API
 export async function getUserDetails() {
   try {
-    const response = await fetch(`${PII_API_URL}/api/user?email=${MOCK_USER_EMAIL}`);
+    const token = await getAccessToken();
+    const response = await fetch(`${PII_API_URL}/api/user?email=${MOCK_USER_EMAIL}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     if (!response.ok) throw new Error("Failed to fetch user details");
     return await response.json();
   } catch (error) {
@@ -24,10 +35,12 @@ export async function updateUserProfile(userData: {
   imageUrl?: string;
 }) {
   try {
+    const token = await getAccessToken();
     const response = await fetch(`${PII_API_URL}/api/user`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         email: MOCK_USER_EMAIL,
