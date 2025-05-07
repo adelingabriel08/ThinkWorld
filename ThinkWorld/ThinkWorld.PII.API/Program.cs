@@ -15,7 +15,12 @@ using ThinkWorld.Services.Options;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = "https://dev-99631801-admin.okta.com";
+        options.Audience = "api://default";
+    });
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -35,6 +40,15 @@ builder.Services.AddCors(options =>
         {
             policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
         });
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireThinkWorldApiScope", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("scope", "thinkworld.api");
+    });
 });
 
 var app = builder.Build();
@@ -58,6 +72,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapPost("/api/comment", async (CreateCommentCmd cmd, HttpContext httpContext, IMediator mediator) =>
     {
@@ -73,7 +89,8 @@ app.MapPost("/api/comment", async (CreateCommentCmd cmd, HttpContext httpContext
     .WithName("CreatePostComment")
     .WithOpenApi()
     .Produces<PostComment>()
-    .Produces(StatusCodes.Status400BadRequest);
+    .Produces(StatusCodes.Status400BadRequest)
+    .RequireAuthorization("RequireThinkWorldApiScope");
 
 app.MapDelete("/api/comment/{commentId}", async ([FromRoute] Guid commentId, string email, HttpContext httpContext, IMediator mediator) =>
     {
@@ -89,7 +106,8 @@ app.MapDelete("/api/comment/{commentId}", async ([FromRoute] Guid commentId, str
     .WithName("DeletePostComment")
     .WithOpenApi()
     .Produces(StatusCodes.Status400BadRequest)
-    .Produces(StatusCodes.Status204NoContent);
+    .Produces(StatusCodes.Status204NoContent)
+    .RequireAuthorization("RequireThinkWorldApiScope");
 
 app.MapGet("/api/post/{postId}/comments", async (Guid postId, HttpContext httpContext, IMediator mediator) =>
     {
@@ -110,7 +128,8 @@ app.MapGet("/api/post/{postId}/comments", async (Guid postId, HttpContext httpCo
     .WithName("GetPostComments")
     .WithOpenApi()
     .Produces<List<PostComment>>()
-    .Produces(StatusCodes.Status400BadRequest);
+    .Produces(StatusCodes.Status400BadRequest)
+    .RequireAuthorization("RequireThinkWorldApiScope");
 
 
 app.MapPost("/api/user", async (AddOrUpdateUserCmd cmd, HttpContext httpContext, IMediator mediator) =>
@@ -127,7 +146,8 @@ app.MapPost("/api/user", async (AddOrUpdateUserCmd cmd, HttpContext httpContext,
     .WithName("AddOrUpdateUserDetails")
     .WithOpenApi()
     .Produces<User>()
-    .Produces(StatusCodes.Status400BadRequest);
+    .Produces(StatusCodes.Status400BadRequest)
+    .RequireAuthorization("RequireThinkWorldApiScope");
 
 app.MapDelete("/api/user/annonymise", async (string email, HttpContext httpContext, IMediator mediator) =>
     {
@@ -143,7 +163,8 @@ app.MapDelete("/api/user/annonymise", async (string email, HttpContext httpConte
     .WithName("AnnonymiseUser")
     .WithOpenApi()
     .Produces(StatusCodes.Status400BadRequest)
-    .Produces(StatusCodes.Status204NoContent);
+    .Produces(StatusCodes.Status204NoContent)
+    .RequireAuthorization("RequireThinkWorldApiScope");
 
 app.MapGet("/api/user", async (string email, HttpContext httpContext, IMediator mediator) =>
     {
@@ -164,7 +185,8 @@ app.MapGet("/api/user", async (string email, HttpContext httpContext, IMediator 
     .WithName("GetUserDetails")
     .WithOpenApi()
     .Produces<User>()
-    .Produces(StatusCodes.Status400BadRequest);
+    .Produces(StatusCodes.Status400BadRequest)
+    .RequireAuthorization("RequireThinkWorldApiScope");
 
 app.MapPost("/api/post/vote", async (AddOrUpdatePostVoteCmd cmd, HttpContext httpContext, IMediator mediator) =>
     {
@@ -180,7 +202,8 @@ app.MapPost("/api/post/vote", async (AddOrUpdatePostVoteCmd cmd, HttpContext htt
     .WithName("AddOrUpdatePostVote")
     .WithOpenApi()
     .Produces<PostVote>()
-    .Produces(StatusCodes.Status400BadRequest);
+    .Produces(StatusCodes.Status400BadRequest)
+    .RequireAuthorization("RequireThinkWorldApiScope");
 
 // .RequireAuthorization();
 

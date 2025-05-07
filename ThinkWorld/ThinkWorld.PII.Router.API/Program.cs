@@ -5,12 +5,27 @@ using ThinkWorld.PII.Router.Handlers;
 using ThinkWorld.Services;
 using ThinkWorld.Services.DataContext;
 using ThinkWorld.Services.Options;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
-// builder.Services.AddAuthorization();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = "https://dev-99631801-admin.okta.com";
+        options.Audience = "api://default";
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireThinkWorldApiScope", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("scope", "thinkworld.api");
+    });
+});
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -55,6 +70,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapPost("/api/router/user", async (AddOrUpdateRoutedUserCmd cmd, HttpContext httpContext, IMediator mediator) =>
     {
@@ -70,7 +87,8 @@ app.MapPost("/api/router/user", async (AddOrUpdateRoutedUserCmd cmd, HttpContext
     .WithName("AddOrUpdateUser")
     .WithOpenApi()
     .Produces<RoutedUser>()
-    .Produces(StatusCodes.Status400BadRequest);
+    .Produces(StatusCodes.Status400BadRequest)
+    .RequireAuthorization("RequireThinkWorldApiScope");
 
 app.MapGet("/api/router/user", async (string email, HttpContext httpContext, IMediator mediator) =>
     {
@@ -92,8 +110,8 @@ app.MapGet("/api/router/user", async (string email, HttpContext httpContext, IMe
     .WithOpenApi()
     .Produces<RoutedUser>()
     .Produces(StatusCodes.Status400BadRequest)
-    .Produces(StatusCodes.Status404NotFound);
-    // .RequireAuthorization();
+    .Produces(StatusCodes.Status404NotFound)
+    .RequireAuthorization("RequireThinkWorldApiScope");
 
 app.MapGet("/api/router/regions", async (HttpContext httpContext, IMediator mediator) =>
     {
@@ -109,6 +127,7 @@ app.MapGet("/api/router/regions", async (HttpContext httpContext, IMediator medi
     .WithName("GetPiiRegions")
     .WithOpenApi()
     .Produces<RoutedUser>()
-    .Produces(StatusCodes.Status400BadRequest);
+    .Produces(StatusCodes.Status400BadRequest)
+    .RequireAuthorization("RequireThinkWorldApiScope");
 
 app.Run();

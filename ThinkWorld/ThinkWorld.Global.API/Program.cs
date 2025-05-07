@@ -12,8 +12,20 @@ using ThinkWorld.Services.Options;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
-// builder.Services.AddAuthorization();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = "https://dev-99631801-admin.okta.com";
+        options.Audience = "api://default";
+    });
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireThinkWorldApiScope", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("scope", "thinkworld.api");
+    });
+});
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -54,6 +66,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapPost("/api/community", async (AddOrUpdateCommunityCmd cmd, HttpContext httpContext, IMediator mediator) =>
     {
@@ -69,7 +83,8 @@ app.MapPost("/api/community", async (AddOrUpdateCommunityCmd cmd, HttpContext ht
     .WithName("AddOrUpdateCommunity")
     .WithOpenApi()
     .Produces<Community>()
-    .Produces(StatusCodes.Status400BadRequest);
+    .Produces(StatusCodes.Status400BadRequest)
+    .RequireAuthorization("RequireThinkWorldApiScope");
 
 app.MapPost("/api/post", async (AddOrUpdatePostCmd cmd, HttpContext httpContext, IMediator mediator) =>
     {
@@ -85,7 +100,8 @@ app.MapPost("/api/post", async (AddOrUpdatePostCmd cmd, HttpContext httpContext,
     .WithName("AddOrUpdatePost")
     .WithOpenApi()
     .Produces<CommunityPost>()
-    .Produces(StatusCodes.Status400BadRequest);
+    .Produces(StatusCodes.Status400BadRequest)
+    .RequireAuthorization("RequireThinkWorldApiScope");
 
 app.MapDelete("/api/{communityId}/post", async ([FromRoute] Guid communityId, Guid postId, string email, HttpContext httpContext, IMediator mediator) =>
     {
@@ -101,7 +117,8 @@ app.MapDelete("/api/{communityId}/post", async ([FromRoute] Guid communityId, Gu
     .WithName("DeletePost")
     .WithOpenApi()
     .Produces(StatusCodes.Status400BadRequest)
-    .Produces(StatusCodes.Status204NoContent);
+    .Produces(StatusCodes.Status204NoContent)
+    .RequireAuthorization("RequireThinkWorldApiScope");
 
 app.MapGet("/api/community", async (HttpContext httpContext, IMediator mediator) =>
     {
@@ -122,8 +139,8 @@ app.MapGet("/api/community", async (HttpContext httpContext, IMediator mediator)
     .WithName("GetCommunities")
     .WithOpenApi()
     .Produces<List<Community>>()
-    .Produces(StatusCodes.Status400BadRequest);
-// .RequireAuthorization();
+    .Produces(StatusCodes.Status400BadRequest)
+    .RequireAuthorization("RequireThinkWorldApiScope");
 
 app.MapGet("/api/post", async (Guid? communityId, string email, HttpContext httpContext, IMediator mediator) =>
     {
@@ -139,6 +156,7 @@ app.MapGet("/api/post", async (Guid? communityId, string email, HttpContext http
     .WithName("GetPosts")
     .WithOpenApi()
     .Produces<List<CommunityPost>>()
-    .Produces(StatusCodes.Status400BadRequest);
+    .Produces(StatusCodes.Status400BadRequest)
+    .RequireAuthorization("RequireThinkWorldApiScope");
     
 app.Run();
