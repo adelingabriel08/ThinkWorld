@@ -9,5 +9,5 @@ public record AddOrUpdateCommunityCmd : IRequest<OperationResult<Aggregates.Comm
     public string? Name { get; init; }
     public string? Description { get; init; }
     public string? ImageUrl { get; init; }
-    public string? Email { get; init; }
+    public string? Email { get; set; }
 }

@@ -22,4 +22,14 @@ public class UserDbContext : DbContext
         modelBuilder.Entity<User>().ToContainer("Users").HasPartitionKey(cp => cp.Id).UseETagConcurrency();
         modelBuilder.Entity<PostVote>().ToContainer("PostVotes").HasPartitionKey(cp => cp.PostId).UseETagConcurrency();
     }
+    
+    public static IEnumerable<string> GetTableNames()
+    {
+        return new List<string>
+        {
+            "Comments",
+            "Users",
+            "PostVotes"
+        };
+    }
 }

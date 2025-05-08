@@ -1,3 +1,6 @@
+using System.Configuration;
+using System.Security.Claims;
+using Azure.Identity;
 using MediatR;
 using ThinkWorld.Domain.Entities.Router;
 using ThinkWorld.Domain.Events.Commands.Router;
@@ -6,7 +9,6 @@ using ThinkWorld.Services;
 using ThinkWorld.Services.DataContext;
 using ThinkWorld.Services.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,8 +16,38 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = "https://dev-99631801-admin.okta.com";
+        options.Authority = "https://dev-99631801.okta.com/oauth2/default";
         options.Audience = "api://default";
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = context =>
+            {
+                // Handle array-type scope claims from Okta
+                var scopeClaim = context.Principal?.FindFirst("scp");
+                if (scopeClaim != null && scopeClaim.Value.Contains("thinkworld.api"))
+                {
+                    // Already exists and contains our scope, we're good
+                    return Task.CompletedTask;
+                }
+
+                // Look for scope claims in various formats that Okta might send
+                var claims = context.Principal?.Claims.Where(c => 
+                    (c.Type == "scp" || c.Type == "scope" || c.Type == "http://schemas.microsoft.com/identity/claims/scope") && 
+                    c.Value.Contains("thinkworld.api")).ToList();
+                
+                if (claims != null && claims.Any())
+                {
+                    // We found our scope in one of the claim formats, we're good
+                    return Task.CompletedTask;
+                }
+
+                // Debug-friendly message for token validation issues
+                var tokenClaims = string.Join(", ", context.Principal?.Claims.Select(c => $"{c.Type}: {c.Value}") ?? Array.Empty<string>());
+                context.Fail($"Token validation failed: Required scope 'thinkworld.api' not found. Token claims: {tokenClaims}");
+                
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization(options =>
@@ -23,7 +55,8 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RequireThinkWorldApiScope", policy =>
     {
         policy.RequireAuthenticatedUser();
-        policy.RequireClaim("scope", "thinkworld.api");
+        // Simplified scope check since we've already validated in the JwtBearerEvents
+        policy.RequireAssertion(context => true);
     });
 });
 
@@ -45,8 +78,6 @@ builder.Services.AddCors(options =>
             policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
         });
 });
-
-builder.Services.AddHealthChecks().AddDbContextCheck<RouterDbContext>("CosmosDB");
 
 var app = builder.Build();
 
@@ -76,6 +107,12 @@ app.UseAuthorization();
 
 app.MapPost("/api/router/user", async (AddOrUpdateRoutedUserCmd cmd, HttpContext httpContext, IMediator mediator) =>
     {
+        var email = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(email))
+        {
+            return Results.BadRequest("Email claim is missing");
+        }
+        cmd = cmd with { Email = email };
         var result = await mediator.Send(cmd, httpContext.RequestAborted);
 
         if (result.HasErrors)
@@ -91,8 +128,13 @@ app.MapPost("/api/router/user", async (AddOrUpdateRoutedUserCmd cmd, HttpContext
     .Produces(StatusCodes.Status400BadRequest)
     .RequireAuthorization("RequireThinkWorldApiScope");
 
-app.MapGet("/api/router/user", async (string email, HttpContext httpContext, IMediator mediator) =>
+app.MapGet("/api/router/user", async (HttpContext httpContext, IMediator mediator) =>
     {
+        var email = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(email))
+        {
+            return Results.BadRequest("Email claim is missing");
+        }
         var result = await mediator.Send(new GetRoutedUserCmd(email), httpContext.RequestAborted);
 
         if (result.HasErrors)

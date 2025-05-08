@@ -21,6 +21,15 @@ public class RouterDbContext : DbContext
         modelBuilder.Entity<RoutedUser>().ToContainer("Users").HasPartitionKey(cp => cp.Id).UseETagConcurrency();
         modelBuilder.Entity<RoutingRegion>().ToContainer("Regions").HasPartitionKey(cp => cp.Id).UseETagConcurrency();
     }
+    public static IEnumerable<string> GetTableNames()
+    {
+        return new List<string>
+        {
+            "Comments",
+            "Users",
+            "Regions"
+        };
+    }
     
     public async Task SeedRegionsAsync(CancellationToken cancellationToken = default)
     {

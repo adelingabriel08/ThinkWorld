@@ -20,4 +20,13 @@ public class CosmosDbContext : DbContext
         modelBuilder.Entity<Community>().ToContainer("Communities").HasPartitionKey(c => c.Id).UseETagConcurrency();
         modelBuilder.Entity<CommunityPost>().ToContainer("Posts").HasPartitionKey(cp => cp.CommunityId).UseETagConcurrency();
     }
+    
+    public static IEnumerable<string> GetTableNames()
+    {
+        return new List<string>
+        {
+            "Communities",
+            "Posts"
+        };
+    }
 }

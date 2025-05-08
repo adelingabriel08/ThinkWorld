@@ -1,10 +1,9 @@
+using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Identity.Web.Resource;
 using ThinkWorld.Domain.Aggregates;
 using ThinkWorld.Domain.Events.Commands.Comment;
-using ThinkWorld.Domain.Events.Commands.Community;
 using ThinkWorld.Domain.Events.Commands.Post;
 using ThinkWorld.Domain.Events.Commands.User;
 using ThinkWorld.Pii.Handlers;
@@ -18,9 +17,49 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = "https://dev-99631801-admin.okta.com";
+        options.Authority = "https://dev-99631801.okta.com/oauth2/default";
         options.Audience = "api://default";
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = context =>
+            {
+                // Handle array-type scope claims from Okta
+                var scopeClaim = context.Principal?.FindFirst("scp");
+                if (scopeClaim != null && scopeClaim.Value.Contains("thinkworld.api"))
+                {
+                    // Already exists and contains our scope, we're good
+                    return Task.CompletedTask;
+                }
+
+                // Look for scope claims in various formats that Okta might send
+                var claims = context.Principal?.Claims.Where(c => 
+                    (c.Type == "scp" || c.Type == "scope" || c.Type == "http://schemas.microsoft.com/identity/claims/scope") && 
+                    c.Value.Contains("thinkworld.api")).ToList();
+                
+                if (claims != null && claims.Any())
+                {
+                    // We found our scope in one of the claim formats, we're good
+                    return Task.CompletedTask;
+                }
+
+                // Debug-friendly message for token validation issues
+                var tokenClaims = string.Join(", ", context.Principal?.Claims.Select(c => $"{c.Type}: {c.Value}") ?? Array.Empty<string>());
+                context.Fail($"Token validation failed: Required scope 'thinkworld.api' not found. Token claims: {tokenClaims}");
+                
+                return Task.CompletedTask;
+            }
+        };
     });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireThinkWorldApiScope", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        // Simplified scope check since we've already validated in the JwtBearerEvents
+        policy.RequireAssertion(context => true);
+    });
+});
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -42,19 +81,7 @@ builder.Services.AddCors(options =>
         });
 });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("RequireThinkWorldApiScope", policy =>
-    {
-        policy.RequireAuthenticatedUser();
-        policy.RequireClaim("scope", "thinkworld.api");
-    });
-});
-
-builder.Services.AddHealthChecks().AddDbContextCheck<UserDbContext>("CosmosDB");
-
 var app = builder.Build();
-
 
 using (var scope = app.Services.CreateScope())
 {
@@ -79,6 +106,12 @@ app.UseAuthorization();
 
 app.MapPost("/api/comment", async (CreateCommentCmd cmd, HttpContext httpContext, IMediator mediator) =>
     {
+        var email = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(email))
+        {
+            return Results.BadRequest("Email claim is missing");
+        }
+        cmd = cmd with { Email = email };
         var result = await mediator.Send(cmd, httpContext.RequestAborted);
 
         if (result.HasErrors)
@@ -94,8 +127,13 @@ app.MapPost("/api/comment", async (CreateCommentCmd cmd, HttpContext httpContext
     .Produces(StatusCodes.Status400BadRequest)
     .RequireAuthorization("RequireThinkWorldApiScope");
 
-app.MapDelete("/api/comment/{commentId}", async ([FromRoute] Guid commentId, string email, HttpContext httpContext, IMediator mediator) =>
+app.MapDelete("/api/comment/{commentId}", async ([FromRoute] Guid commentId, HttpContext httpContext, IMediator mediator) =>
     {
+        var email = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(email))
+        {
+            return Results.BadRequest("Email claim is missing");
+        }
         var result = await mediator.Send(new DeleteCommentCmd(commentId, email), httpContext.RequestAborted);
 
         if (result.HasErrors)
@@ -133,9 +171,14 @@ app.MapGet("/api/post/{postId}/comments", async (Guid postId, HttpContext httpCo
     .Produces(StatusCodes.Status400BadRequest)
     .RequireAuthorization("RequireThinkWorldApiScope");
 
-
 app.MapPost("/api/user", async (AddOrUpdateUserCmd cmd, HttpContext httpContext, IMediator mediator) =>
     {
+        var email = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(email))
+        {
+            return Results.BadRequest("Email claim is missing");
+        }
+        cmd = cmd with { Email = email };
         var result = await mediator.Send(cmd, httpContext.RequestAborted);
 
         if (result.HasErrors)
@@ -151,8 +194,13 @@ app.MapPost("/api/user", async (AddOrUpdateUserCmd cmd, HttpContext httpContext,
     .Produces(StatusCodes.Status400BadRequest)
     .RequireAuthorization("RequireThinkWorldApiScope");
 
-app.MapDelete("/api/user/annonymise", async (string email, HttpContext httpContext, IMediator mediator) =>
+app.MapDelete("/api/user/annonymise", async (HttpContext httpContext, IMediator mediator) =>
     {
+        var email = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(email))
+        {
+            return Results.BadRequest("Email claim is missing");
+        }
         var result = await mediator.Send(new AnnonymiseUserCmd(email), httpContext.RequestAborted);
 
         if (result.HasErrors)
@@ -168,8 +216,13 @@ app.MapDelete("/api/user/annonymise", async (string email, HttpContext httpConte
     .Produces(StatusCodes.Status204NoContent)
     .RequireAuthorization("RequireThinkWorldApiScope");
 
-app.MapGet("/api/user", async (string email, HttpContext httpContext, IMediator mediator) =>
+app.MapGet("/api/user", async (HttpContext httpContext, IMediator mediator) =>
     {
+        var email = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(email))
+        {
+            return Results.BadRequest("Email claim is missing");
+        }
         var result = await mediator.Send(new GetUserInfoCmd(email), httpContext.RequestAborted);
 
         if (result.HasErrors)
@@ -206,8 +259,6 @@ app.MapPost("/api/post/vote", async (AddOrUpdatePostVoteCmd cmd, HttpContext htt
     .Produces<PostVote>()
     .Produces(StatusCodes.Status400BadRequest)
     .RequireAuthorization("RequireThinkWorldApiScope");
-
-// .RequireAuthorization();
 
 app.MapHealthChecks("/health");
 

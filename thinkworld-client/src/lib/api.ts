@@ -2,21 +2,26 @@
 const PII_API_URL = "https://localhost:7152";
 const GLOBAL_API_URL = "https://localhost:7184";
 
-// Mock email for development
-const MOCK_USER_EMAIL = "user@example.com";
+import { UserManager } from 'oidc-client-ts';
+import oidcConfig from '../oidcConfig';
 
 // Helper function to get the access token
-async function getAccessToken() {
-  const token = localStorage.getItem('access_token');
-  if (!token) throw new Error('Access token not found');
-  return token;
+export async function getAccessToken() {
+  const userManager = new UserManager(oidcConfig);
+  const user = await userManager.getUser();
+  
+  if (!user || !user.access_token) {
+    throw new Error('Not authenticated or access token expired');
+  }
+  
+  return user.access_token;
 }
 
 // User API
 export async function getUserDetails() {
   try {
     const token = await getAccessToken();
-    const response = await fetch(`${PII_API_URL}/api/user?email=${MOCK_USER_EMAIL}`, {
+    const response = await fetch(`${PII_API_URL}/api/user`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -43,7 +48,6 @@ export async function updateUserProfile(userData: {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        email: MOCK_USER_EMAIL,
         firstName: userData.firstName,
         lastName: userData.lastName,
         imageUrl: userData.imageUrl,
@@ -60,7 +64,12 @@ export async function updateUserProfile(userData: {
 // Community API
 export async function getCommunities() {
   try {
-    const response = await fetch(`${GLOBAL_API_URL}/api/community`);
+    const token = await getAccessToken();
+    const response = await fetch(`${GLOBAL_API_URL}/api/community`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     if (!response.ok) throw new Error("Failed to fetch communities");
     return await response.json();
   } catch (error) {
@@ -75,16 +84,17 @@ export async function createCommunity(communityData: {
   imageUrl?: string;
 }) {
   try {
+    const token = await getAccessToken();
     const response = await fetch(`${GLOBAL_API_URL}/api/community`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         name: communityData.name,
         description: communityData.description,
         imageUrl: communityData.imageUrl || "",
-        email: MOCK_USER_EMAIL,
       }),
     });
     if (!response.ok) throw new Error("Failed to create community");
@@ -98,10 +108,15 @@ export async function createCommunity(communityData: {
 // Posts API
 export async function getPosts(communityId?: string) {
   try {
-    let url = `${GLOBAL_API_URL}/api/post?email=${MOCK_USER_EMAIL}`;
-    if (communityId) url += `&communityId=${communityId}`;
+    let url = `${GLOBAL_API_URL}/api/post`;
+    if (communityId) url += `?communityId=${communityId}`;
     
-    const response = await fetch(url);
+    const token = await getAccessToken();
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     if (!response.ok) throw new Error("Failed to fetch posts");
     return await response.json();
   } catch (error) {
@@ -117,17 +132,18 @@ export async function createPost(postData: {
   imageUrl?: string;
 }) {
   try {
+    const token = await getAccessToken();
     const response = await fetch(`${GLOBAL_API_URL}/api/post`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         communityId: postData.communityId,
         title: postData.title,
         content: postData.content,
         imageUrl: postData.imageUrl || "",
-        email: MOCK_USER_EMAIL,
       }),
     });
     if (!response.ok) throw new Error("Failed to create post");
@@ -140,10 +156,14 @@ export async function createPost(postData: {
 
 export async function deletePost(communityId: string, postId: string) {
   try {
+    const token = await getAccessToken();
     const response = await fetch(
-      `${GLOBAL_API_URL}/api/${communityId}/post?postId=${postId}&email=${MOCK_USER_EMAIL}`,
+      `${GLOBAL_API_URL}/api/${communityId}/post?postId=${postId}`,
       {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
     if (!response.ok) throw new Error("Failed to delete post");
@@ -157,7 +177,12 @@ export async function deletePost(communityId: string, postId: string) {
 // Comments API
 export async function getPostComments(postId: string) {
   try {
-    const response = await fetch(`${PII_API_URL}/api/post/${postId}/comments`);
+    const token = await getAccessToken();
+    const response = await fetch(`${PII_API_URL}/api/post/${postId}/comments`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     if (!response.ok) throw new Error("Failed to fetch comments");
     return await response.json();
   } catch (error) {
@@ -171,15 +196,16 @@ export async function createComment(commentData: {
   content: string;
 }) {
   try {
+    const token = await getAccessToken();
     const response = await fetch(`${PII_API_URL}/api/comment`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         postId: commentData.postId,
         content: commentData.content,
-        email: MOCK_USER_EMAIL,
       }),
     });
     if (!response.ok) throw new Error("Failed to create comment");
@@ -192,10 +218,14 @@ export async function createComment(commentData: {
 
 export async function deleteComment(commentId: string) {
   try {
+    const token = await getAccessToken();
     const response = await fetch(
-      `${PII_API_URL}/api/comment/${commentId}?email=${MOCK_USER_EMAIL}`,
+      `${PII_API_URL}/api/comment/${commentId}`,
       {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
     if (!response.ok) throw new Error("Failed to delete comment");
@@ -210,16 +240,17 @@ export async function deleteComment(commentId: string) {
 export async function voteOnPost(postId: string, isUpvote: boolean | null) {
   try {
     const voteValue = isUpvote === null ? null : isUpvote ? 1 : 0;
+    const token = await getAccessToken();
     
     const response = await fetch(`${PII_API_URL}/api/post/vote`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         postId: postId,
         vote: voteValue,
-        email: MOCK_USER_EMAIL,
       }),
     });
     if (!response.ok) throw new Error("Failed to vote on post");
