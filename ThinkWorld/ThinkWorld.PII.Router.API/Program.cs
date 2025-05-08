@@ -46,6 +46,7 @@ builder.Services.AddCors(options =>
         });
 });
 
+builder.Services.AddHealthChecks().AddDbContextCheck<RouterDbContext>("CosmosDB");
 
 var app = builder.Build();
 
@@ -129,5 +130,7 @@ app.MapGet("/api/router/regions", async (HttpContext httpContext, IMediator medi
     .Produces<RoutedUser>()
     .Produces(StatusCodes.Status400BadRequest)
     .RequireAuthorization("RequireThinkWorldApiScope");
+
+app.MapHealthChecks("/health");
 
 app.Run();

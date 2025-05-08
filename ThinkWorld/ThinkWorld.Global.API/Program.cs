@@ -45,6 +45,7 @@ builder.Services.AddCors(options =>
             policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
         });
 });
+builder.Services.AddHealthChecks().AddDbContextCheck<CosmosDbContext>("CosmosDB");
 
 var app = builder.Build();
 
@@ -158,5 +159,7 @@ app.MapGet("/api/post", async (Guid? communityId, string email, HttpContext http
     .Produces<List<CommunityPost>>()
     .Produces(StatusCodes.Status400BadRequest)
     .RequireAuthorization("RequireThinkWorldApiScope");
-    
+
+app.MapHealthChecks("/health");
+
 app.Run();

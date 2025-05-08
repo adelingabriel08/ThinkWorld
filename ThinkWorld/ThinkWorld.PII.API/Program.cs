@@ -51,6 +51,8 @@ builder.Services.AddAuthorization(options =>
     });
 });
 
+builder.Services.AddHealthChecks().AddDbContextCheck<UserDbContext>("CosmosDB");
+
 var app = builder.Build();
 
 
@@ -206,5 +208,7 @@ app.MapPost("/api/post/vote", async (AddOrUpdatePostVoteCmd cmd, HttpContext htt
     .RequireAuthorization("RequireThinkWorldApiScope");
 
 // .RequireAuthorization();
+
+app.MapHealthChecks("/health");
 
 app.Run();
