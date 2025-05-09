@@ -245,6 +245,12 @@ app.MapGet("/api/user", async (HttpContext httpContext, IMediator mediator) =>
 
 app.MapPost("/api/post/vote", async (AddOrUpdatePostVoteCmd cmd, HttpContext httpContext, IMediator mediator) =>
     {
+        var email = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(email))
+        {
+            return Results.BadRequest("Email claim is missing");
+        }
+        cmd = cmd with { Email = email };
         var result = await mediator.Send(cmd, httpContext.RequestAborted);
 
         if (result.HasErrors)

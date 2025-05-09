@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using ThinkWorld.Domain.Events.Commands.User;
 using ThinkWorld.Domain.Events.Results;
 using ThinkWorld.Services;
@@ -26,8 +27,8 @@ public class AnnonymiseUserHandler : IRequestHandler<AnnonymiseUserCmd, Operatio
         
         var userId = _userIdGenerator.ComputeUserId(request.Email);
         
-        var user = _context.Users
-            .FirstOrDefault(x => x.Id == userId);
+        var user = await _context.Users
+            .FirstOrDefaultAsync(x => x.Id == userId);
         
         if (user == null) 
             return OperationResult.Failed("User not found");

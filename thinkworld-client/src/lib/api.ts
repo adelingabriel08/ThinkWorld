@@ -1,6 +1,7 @@
 // API configuration
 const PII_API_URL = "https://localhost:7152";
 const GLOBAL_API_URL = "https://localhost:7184";
+const ROUTER_API_URL = "https://localhost:7244";
 
 import { UserManager } from 'oidc-client-ts';
 import oidcConfig from '../oidcConfig';
@@ -34,14 +35,31 @@ export async function getUserDetails() {
   }
 }
 
+export async function addOrUpdateRouterUser({ email, regionId }: { email: string; regionId: string }) {
+  const token = await getAccessToken();
+  const response = await fetch(`${ROUTER_API_URL}/api/router/user`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ email, regionId })
+  });
+  if (!response.ok) throw new Error("Failed to add or update router user");
+  return await response.json();
+}
+
 export async function updateUserProfile(userData: {
   firstName: string;
   lastName: string;
   imageUrl?: string;
+  regionId?: string;
+  email?: string;
 }) {
   try {
     const token = await getAccessToken();
-    const response = await fetch(`${PII_API_URL}/api/user`, {
+    // Call Users API
+    const userRes = await fetch(`${PII_API_URL}/api/user`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -51,10 +69,16 @@ export async function updateUserProfile(userData: {
         firstName: userData.firstName,
         lastName: userData.lastName,
         imageUrl: userData.imageUrl,
+        regionId: userData.regionId,
       }),
     });
-    if (!response.ok) throw new Error("Failed to update user profile");
-    return await response.json();
+    if (!userRes.ok) throw new Error("Failed to update user profile");
+    const updatedUser = await userRes.json();
+    // Also call Router POST user API if regionId and email are present
+    if (userData.regionId && updatedUser.email) {
+      await addOrUpdateRouterUser({ email: updatedUser.email, regionId: userData.regionId });
+    }
+    return updatedUser;
   } catch (error) {
     console.error("Error updating user profile:", error);
     throw error;
@@ -259,4 +283,40 @@ export async function voteOnPost(postId: string, isUpvote: boolean | null) {
     console.error("Error voting on post:", error);
     throw error;
   }
+}
+
+export async function fetchRegions() {
+  const token = await getAccessToken();
+  const res = await fetch(`${ROUTER_API_URL}/api/router/regions`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error("Failed to fetch regions");
+  const data = await res.json();
+  return Array.isArray(data) ? data : (data.regions || []);
+}
+
+export async function getRouterUserApiUrl(options?: { skipRedirectIfProfile?: boolean }): Promise<string | null> {
+  let accessToken: string;
+  try {
+    accessToken = await getAccessToken();
+  } catch {
+    throw new Error("Failed to get access token");
+  }
+  const routerUrl = `${ROUTER_API_URL}/api/router/user`;
+  const res = await fetch(routerUrl, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (res.status === 404 || res.status === 400) {
+    if (!(options && options.skipRedirectIfProfile && window.location.pathname.startsWith("/profile"))) {
+      window.location.replace("/profile?setup=1");
+    }
+    return null;
+  }
+  if (!res.ok) throw new Error("Could not determine user region");
+  const routedUser = await res.json();
+  return routedUser.apiUrl || routedUser.userApiUrl || routedUser.regionApiUrl || null;
 }

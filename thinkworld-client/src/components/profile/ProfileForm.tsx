@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { getUserDetails, updateUserProfile } from '@/lib/api';
+import { getUserDetails, updateUserProfile, fetchRegions } from '@/lib/api';
 import { User } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,9 @@ const ProfileForm = () => {
     firstName: '',
     lastName: '',
     imageUrl: '',
+    regionId: '',
   });
+  const [regions, setRegions] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -28,6 +29,7 @@ const ProfileForm = () => {
           firstName: userData.firstName || '',
           lastName: userData.lastName || '',
           imageUrl: userData.imageUrl || '',
+          regionId: userData.regionId || '',
         });
       } catch (error) {
         toast.error('Failed to load profile');
@@ -37,9 +39,14 @@ const ProfileForm = () => {
     };
 
     loadUserProfile();
+
+    // Fetch regions for selection
+    fetchRegions()
+      .then(setRegions)
+      .catch(() => {/* Optionally log error */});
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -47,7 +54,7 @@ const ProfileForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.firstName || !formData.lastName) {
+    if (!formData.firstName || !formData.lastName || !formData.regionId) {
       toast.error('Please fill out all required fields');
       return;
     }
@@ -121,6 +128,23 @@ const ProfileForm = () => {
               onChange={handleChange}
               placeholder="Enter image URL"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="regionId">Region</Label>
+            <select
+              id="regionId"
+              name="regionId"
+              value={formData.regionId}
+              onChange={handleChange}
+              required
+              className="w-full border rounded px-3 py-2"
+            >
+              <option value="" disabled>Select your region</option>
+              {regions.map(region => (
+                <option key={region.id} value={region.id}>{region.name}</option>
+              ))}
+            </select>
           </div>
           
           <div className="pt-2">
