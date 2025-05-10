@@ -18,11 +18,16 @@ public static class ServicesExtensions
             DatabaseId = options.DatabaseName,
             ContainerIds = CosmosDbContext.GetTableNames()
         };
+        var cosmosClientOptions = new CosmosClientOptions()
+        {
+            ApplicationRegion = options.ApplicationRegion,
+        };
         if (options.UseManagedIdentity)
         {
-            services.AddDbContext<CosmosDbContext>(o => o.UseCosmos(options.Endpoint, new DefaultAzureCredential(), options.DatabaseName));
+            services.AddDbContext<CosmosDbContext>(o => o.UseCosmos(options.Endpoint, new DefaultAzureCredential(), 
+                options.DatabaseName, x => x.Region(options.ApplicationRegion)));
             services.AddHealthChecks()
-                .AddAzureCosmosDB(x => new CosmosClient(options.Endpoint, new DefaultAzureCredential()),
+                .AddAzureCosmosDB(x => new CosmosClient(options.Endpoint, new DefaultAzureCredential(), cosmosClientOptions),
                     x => healthOptions, nameof(CosmosDbContext), tags: new[] { "CosmosDb", "all" });
         }
         else
@@ -31,9 +36,9 @@ public static class ServicesExtensions
             {
                 throw new ArgumentException($"{nameof(GlobalDatabaseOptions)}: EndpointKey cannot be null or empty when UseManagedIdentity is false.");
             }
-            services.AddDbContext<CosmosDbContext>(o => o.UseCosmos(options.Endpoint, options.EndpointKey!, options.DatabaseName));
+            services.AddDbContext<CosmosDbContext>(o => o.UseCosmos(options.Endpoint, options.EndpointKey!, options.DatabaseName, x => x.Region(options.ApplicationRegion)));
             services.AddHealthChecks()
-                .AddAzureCosmosDB(x => new CosmosClient(options.Endpoint, options.EndpointKey!),
+                .AddAzureCosmosDB(x => new CosmosClient(options.Endpoint, options.EndpointKey!, cosmosClientOptions),
                     x => healthOptions, nameof(CosmosDbContext), tags: new[] { "CosmosDb", "all" });
         }
 
@@ -47,11 +52,15 @@ public static class ServicesExtensions
             DatabaseId = options.DatabaseName,
             ContainerIds = RouterDbContext.GetTableNames()
         };
+        var cosmosClientOptions = new CosmosClientOptions()
+        {
+            ApplicationRegion = options.ApplicationRegion,
+        };
         if (options.UseManagedIdentity)
         {
-            services.AddDbContext<RouterDbContext>(o => o.UseCosmos(options.Endpoint, new DefaultAzureCredential(), options.DatabaseName));
+            services.AddDbContext<RouterDbContext>(o => o.UseCosmos(options.Endpoint, new DefaultAzureCredential(), options.DatabaseName,  x => x.Region(options.ApplicationRegion)));
             services.AddHealthChecks()
-                .AddAzureCosmosDB(x => new CosmosClient(options.Endpoint, new DefaultAzureCredential()),
+                .AddAzureCosmosDB(x => new CosmosClient(options.Endpoint, new DefaultAzureCredential(), cosmosClientOptions),
                     x => healthOptions, nameof(RouterDbContext), tags: new[] { "CosmosDb", "all" });
         }
         else
@@ -60,9 +69,9 @@ public static class ServicesExtensions
             {
                 throw new ArgumentException($"{nameof(RouterDatabaseOptions)}: EndpointKey cannot be null or empty when UseManagedIdentity is false.");
             }
-            services.AddDbContext<RouterDbContext>(o => o.UseCosmos(options.Endpoint, options.EndpointKey!, options.DatabaseName));
+            services.AddDbContext<RouterDbContext>(o => o.UseCosmos(options.Endpoint, options.EndpointKey!, options.DatabaseName,  x => x.Region(options.ApplicationRegion)));
             services.AddHealthChecks()
-                .AddAzureCosmosDB(x => new CosmosClient(options.Endpoint, options.EndpointKey!),
+                .AddAzureCosmosDB(x => new CosmosClient(options.Endpoint, options.EndpointKey!, cosmosClientOptions),
                     x => healthOptions, nameof(RouterDbContext), tags: new[] { "CosmosDb", "all" });
         }
 
@@ -76,11 +85,15 @@ public static class ServicesExtensions
             DatabaseId = options.DatabaseName,
             ContainerIds = UserDbContext.GetTableNames()
         };
+        var cosmosClientOptions = new CosmosClientOptions()
+        {
+            ApplicationRegion = options.ApplicationRegion,
+        };
         if (options.UseManagedIdentity)
         {
-            services.AddDbContext<UserDbContext>(o => o.UseCosmos(options.Endpoint, new DefaultAzureCredential(), options.DatabaseName));
+            services.AddDbContext<UserDbContext>(o => o.UseCosmos(options.Endpoint, new DefaultAzureCredential(), options.DatabaseName,  x => x.Region(options.ApplicationRegion)));
             services.AddHealthChecks()
-                .AddAzureCosmosDB(x => new CosmosClient(options.Endpoint, new DefaultAzureCredential()),
+                .AddAzureCosmosDB(x => new CosmosClient(options.Endpoint, new DefaultAzureCredential(), cosmosClientOptions),
                     x => healthOptions, nameof(UserDbContext), tags: new[] { "CosmosDb", "all" });
         }
         else
@@ -89,9 +102,9 @@ public static class ServicesExtensions
             {
                 throw new ArgumentException($"{nameof(PiiDatabaseOptions)}: EndpointKey cannot be null or empty when UseManagedIdentity is false.");
             }
-            services.AddDbContext<UserDbContext>(o => o.UseCosmos(options.Endpoint, options.EndpointKey!, options.DatabaseName));
+            services.AddDbContext<UserDbContext>(o => o.UseCosmos(options.Endpoint, options.EndpointKey!, options.DatabaseName,  x => x.Region(options.ApplicationRegion)));
             services.AddHealthChecks()
-                .AddAzureCosmosDB(x => new CosmosClient(options.Endpoint, options.EndpointKey!),
+                .AddAzureCosmosDB(x => new CosmosClient(options.Endpoint, options.EndpointKey!, cosmosClientOptions),
                     x => healthOptions, nameof(UserDbContext), tags: new[] { "CosmosDb", "all" });
             
         }

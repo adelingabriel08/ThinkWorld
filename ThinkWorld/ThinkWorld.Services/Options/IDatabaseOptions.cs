@@ -13,4 +13,7 @@ public abstract class DatabaseOptions
     public string? EndpointKey { get; set; }
     
     public bool UseManagedIdentity { get; set; } = true;
+
+    [Required]
+    public required string ApplicationRegion { get; set; }
 }
