@@ -1,6 +1,4 @@
-using System.Configuration;
 using System.Security.Claims;
-using Azure.Identity;
 using MediatR;
 using ThinkWorld.Domain.Entities.Router;
 using ThinkWorld.Domain.Events.Commands.Router;
@@ -9,8 +7,19 @@ using ThinkWorld.Services;
 using ThinkWorld.Services.DataContext;
 using ThinkWorld.Services.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Serilog;
+using Serilog.Events;
+using ThinkWorld.Services.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
+
+builder.Logging.AddCustomSerilog(builder.Services, builder.Configuration);
 
 // Add services to the container.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -68,7 +77,7 @@ builder.Services.AddOptions<RouterDatabaseOptions>().ValidateOnStart();
 var databaseOptions = builder.Configuration.GetSection(nameof(RouterDatabaseOptions)).Get<RouterDatabaseOptions>();
 
 builder.Services.AddRouterCosmosContext(databaseOptions!);
-builder.Services.AddCommonServices();
+builder.Services.AddCommonServices(builder.Configuration);
 builder.Services.AddRouterHandlers();
 builder.Services.AddCors(options =>
 {

@@ -2,6 +2,8 @@ using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
+using Serilog.Events;
 using ThinkWorld.Domain.Aggregates;
 using ThinkWorld.Domain.Events.Commands.Comment;
 using ThinkWorld.Domain.Events.Commands.Post;
@@ -9,9 +11,18 @@ using ThinkWorld.Domain.Events.Commands.User;
 using ThinkWorld.Pii.Handlers;
 using ThinkWorld.Services;
 using ThinkWorld.Services.DataContext;
+using ThinkWorld.Services.Hosting;
 using ThinkWorld.Services.Options;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
+
+builder.Logging.AddCustomSerilog(builder.Services, builder.Configuration);
 
 // Add services to the container.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -70,7 +81,7 @@ var databaseOptions = builder.Configuration.GetSection(nameof(PiiDatabaseOptions
 
 builder.Services.AddPiiCosmosContext(databaseOptions!);
 
-builder.Services.AddCommonServices();
+builder.Services.AddCommonServices(builder.Configuration);
 builder.Services.AddPiiHandlers();
 builder.Services.AddCors(options =>
 {

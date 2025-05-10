@@ -2,15 +2,26 @@ using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
+using Serilog.Events;
 using ThinkWorld.Domain.Aggregates;
 using ThinkWorld.Domain.Events.Commands.Community;
 using ThinkWorld.Domain.Events.Commands.Post;
 using ThinkWorld.Events.Handlers;
 using ThinkWorld.Services;
 using ThinkWorld.Services.DataContext;
+using ThinkWorld.Services.Hosting;
 using ThinkWorld.Services.Options;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
+
+builder.Logging.AddCustomSerilog(builder.Services, builder.Configuration);
 
 // Add services to the container.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -68,7 +79,7 @@ builder.Services.AddOptions<GlobalDatabaseOptions>().ValidateDataAnnotations();
 var globalDatabaseOptions = builder.Configuration.GetSection(nameof(GlobalDatabaseOptions)).Get<GlobalDatabaseOptions>();
 
 builder.Services.AddGlobalCosmosContext(globalDatabaseOptions!);
-builder.Services.AddCommonServices();
+builder.Services.AddCommonServices(builder.Configuration);
 builder.Services.AddHandlers();
 builder.Services.AddCors(options =>
 {
@@ -78,6 +89,7 @@ builder.Services.AddCors(options =>
             policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
         });
 });
+
 
 var app = builder.Build();
 
