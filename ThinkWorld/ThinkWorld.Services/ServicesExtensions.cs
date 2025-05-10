@@ -207,6 +207,7 @@ public static class ServicesExtensions
                 return AspNetCoreInstrumentationFilter(httpContext);
             };
         });
+        builder.AddEntityFrameworkCoreInstrumentation();
 
         if (options.SamplingProbability != 1)
         {
