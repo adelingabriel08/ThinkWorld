@@ -32,11 +32,12 @@ public static class ServicesExtensions
         };
         if (options.UseManagedIdentity)
         {
-            services.AddDbContext<CosmosDbContext>(o => o.UseCosmos(options.Endpoint, new DefaultAzureCredential(),
+            var credential = new DefaultAzureCredential();
+            services.AddDbContext<CosmosDbContext>(o => o.UseCosmos(options.Endpoint, credential,
                 options.DatabaseName, x => x.Region(options.ApplicationRegion)));
             services.AddHealthChecks()
                 .AddAzureCosmosDB(
-                    x => new CosmosClient(options.Endpoint, new DefaultAzureCredential(), cosmosClientOptions),
+                    x => new CosmosClient(options.Endpoint, credential, cosmosClientOptions),
                     x => healthOptions, nameof(CosmosDbContext), tags: new[] { "CosmosDb", "all" });
         }
         else
@@ -71,11 +72,12 @@ public static class ServicesExtensions
         };
         if (options.UseManagedIdentity)
         {
-            services.AddDbContext<RouterDbContext>(o => o.UseCosmos(options.Endpoint, new DefaultAzureCredential(),
+            var credential = new DefaultAzureCredential();
+            services.AddDbContext<RouterDbContext>(o => o.UseCosmos(options.Endpoint, credential,
                 options.DatabaseName, x => x.Region(options.ApplicationRegion)));
             services.AddHealthChecks()
                 .AddAzureCosmosDB(
-                    x => new CosmosClient(options.Endpoint, new DefaultAzureCredential(), cosmosClientOptions),
+                    x => new CosmosClient(options.Endpoint, credential, cosmosClientOptions),
                     x => healthOptions, nameof(RouterDbContext), tags: new[] { "CosmosDb", "all" });
         }
         else
@@ -109,11 +111,13 @@ public static class ServicesExtensions
         };
         if (options.UseManagedIdentity)
         {
-            services.AddDbContext<UserDbContext>(o => o.UseCosmos(options.Endpoint, new DefaultAzureCredential(),
+            var credential = new DefaultAzureCredential();
+            
+            services.AddDbContext<UserDbContext>(o => o.UseCosmos(options.Endpoint, credential,
                 options.DatabaseName, x => x.Region(options.ApplicationRegion)));
             services.AddHealthChecks()
                 .AddAzureCosmosDB(
-                    x => new CosmosClient(options.Endpoint, new DefaultAzureCredential(), cosmosClientOptions),
+                    x => new CosmosClient(options.Endpoint, credential, cosmosClientOptions),
                     x => healthOptions, nameof(UserDbContext), tags: new[] { "CosmosDb", "all" });
         }
         else
@@ -239,7 +243,7 @@ public static class ServicesExtensions
     private static OpenTelemetryBuilder AddAzureMonitor(this OpenTelemetryBuilder builder, OpenTelemetryOptions options)
     {
         if (!string.IsNullOrEmpty(options.ApplicationInsightsConnectionString))
-            builder.UseAzureMonitor();
+            builder.UseAzureMonitor(o => o.ConnectionString = options.ApplicationInsightsConnectionString);
 
         return builder;
     }

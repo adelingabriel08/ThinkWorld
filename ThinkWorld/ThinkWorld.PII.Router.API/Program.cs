@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Serilog;
 using Serilog.Events;
 using ThinkWorld.Services.Hosting;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -100,14 +101,14 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+// if (app.Environment.IsDevelopment())
+// {
     app.MapOpenApi();
     app.UseSwaggerUI(r => 
     {
         r.SwaggerEndpoint("/openapi/v1.json", "ThinkWorld PII Router API V1");
     });
-}
+// }
 
 app.UseHttpsRedirection();
 app.UseCors();
@@ -179,6 +180,49 @@ app.MapGet("/api/router/regions", async (HttpContext httpContext, IMediator medi
     .WithName("GetPiiRegions")
     .WithOpenApi()
     .Produces<RoutedUser>()
+    .Produces(StatusCodes.Status400BadRequest)
+    .RequireAuthorization("RequireThinkWorldApiScope");
+
+app.MapPost("/api/router/comments", async (HttpContext httpContext, IMediator mediator, IUserIdGenerator userIdGenerator, RouterDbContext dbContext, string commentId, string postId) =>
+    {
+        var email = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(email))
+        {
+            return Results.BadRequest("Email claim is missing");
+        }
+        var userId = userIdGenerator.ComputeUserId(email);
+        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+        {
+            return Results.BadRequest("User not found");
+        }
+        // Only use commentId as input, not the full command
+        var cmd = new CreateRoutedCommentCmd { Id = commentId, UserId = userId, RegionId = user.RegionId, PostId = postId, CreatedAt = DateTime.UtcNow };
+        var result = await mediator.Send(cmd);
+        if (result.HasErrors)
+        {
+            return Results.BadRequest(result.Errors);
+        }
+        return Results.Ok(result.Result);
+    })
+    .WithName("CreateRoutedComment")
+    .WithOpenApi()
+    .Produces<RoutedComment>()
+    .Produces(StatusCodes.Status400BadRequest)
+    .RequireAuthorization("RequireThinkWorldApiScope");
+
+app.MapGet("/api/router/comments/post/{postId}", async (string postId, IMediator mediator) =>
+    {
+        var result = await mediator.Send(new GetRoutedCommentsByPostIdCmd { PostId = postId });
+        if (result.HasErrors)
+        {
+            return Results.BadRequest(result.Errors);
+        }
+        return Results.Ok(result.Result);
+    })
+    .WithName("GetRoutedCommentsByPostId")
+    .WithOpenApi()
+    .Produces<List<RoutedComment>>()
     .Produces(StatusCodes.Status400BadRequest)
     .RequireAuthorization("RequireThinkWorldApiScope");
 

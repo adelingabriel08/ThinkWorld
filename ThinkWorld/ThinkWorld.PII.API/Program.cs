@@ -101,14 +101,14 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+// if (app.Environment.IsDevelopment())
+// {
     app.MapOpenApi();
     app.UseSwaggerUI(r =>
     {
         r.SwaggerEndpoint("/openapi/v1.json", "ThinkWorld PII API V1");
     });
-}
+// }
 
 app.UseHttpsRedirection();
 app.UseCors();

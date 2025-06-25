@@ -1,19 +1,19 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ArrowUp, ArrowDown, MessageSquare } from 'lucide-react';
 import { CommunityPost } from '@/lib/types';
 import { voteOnPost } from '@/lib/api';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { usePiiUserUrl } from '@/lib/usePiiUserUrl';
 
 interface PostCardProps {
   post: CommunityPost;
 }
 
 const PostCard = ({ post }: PostCardProps) => {
+  const { piiUserUrl } = usePiiUserUrl();
   const [voteStatus, setVoteStatus] = useState<boolean | null>(null);
   
   const handleVote = async (isUpvote: boolean) => {
@@ -21,7 +21,8 @@ const PostCard = ({ post }: PostCardProps) => {
     const newVoteValue = voteStatus === isUpvote ? null : isUpvote;
     
     try {
-      await voteOnPost(post.id, newVoteValue);
+      if (!piiUserUrl) throw new Error('PII API URL not available');
+      await voteOnPost(post.id, newVoteValue, piiUserUrl);
       setVoteStatus(newVoteValue);
       toast.success('Vote registered');
     } catch (error) {
@@ -58,8 +59,6 @@ const PostCard = ({ post }: PostCardProps) => {
           <Link to={`/post/${post.id}`}>
             <CardHeader className="py-3">
               <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                <span>Posted by {post.createdBy}</span>
-                <span>•</span>
                 <span>{new Date(post.createdAt).toLocaleDateString()}</span>
               </div>
               <CardTitle className="text-lg font-semibold">{post.title}</CardTitle>

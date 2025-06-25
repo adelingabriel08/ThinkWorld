@@ -24,7 +24,6 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <UserApiUrlProvider>
         <BrowserRouter>
           <Routes>
             <Route path="/auth/callback" element={<Callback />} />
@@ -42,7 +41,6 @@ const App = () => (
             </Route>
           </Routes>
         </BrowserRouter>
-      </UserApiUrlProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

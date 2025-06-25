@@ -73,8 +73,6 @@ const PostPage = () => {
           <div className="flex items-start justify-between">
             <div>
               <div className="text-sm text-gray-500 mb-1">
-                <span>Posted by {post.createdBy}</span>
-                <span className="mx-1">•</span>
                 <span>{new Date(post.createdAt).toLocaleDateString()}</span>
               </div>
               <CardTitle className="text-2xl">{post.title}</CardTitle>

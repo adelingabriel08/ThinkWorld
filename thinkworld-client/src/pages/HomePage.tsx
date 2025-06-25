@@ -40,6 +40,9 @@ const HomePage = () => {
       </div>
 
       <div className="space-y-4">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold mb-4">Welcome to East US 2 instance!</h1>
+        </div>
         {isLoading ? (
           <div className="flex justify-center p-12">
             <p>Loading posts...</p>

@@ -1,18 +1,19 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { getPostComments, createComment } from '@/lib/api';
+import { getAllPostComments, createComment } from '@/lib/api';
 import { PostComment } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { usePiiUserUrl } from '@/lib/usePiiUserUrl';
 
 interface CommentListProps {
   postId: string;
 }
 
 const CommentList = ({ postId }: CommentListProps) => {
+  const { piiUserUrl } = usePiiUserUrl();
   const [comments, setComments] = useState<PostComment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,8 +21,9 @@ const CommentList = ({ postId }: CommentListProps) => {
 
   useEffect(() => {
     const loadComments = async () => {
+      setIsLoading(true);
       try {
-        const data = await getPostComments(postId);
+        const data = await getAllPostComments(postId);
         setComments(data);
       } catch (error) {
         toast.error('Failed to load comments');
@@ -40,12 +42,14 @@ const CommentList = ({ postId }: CommentListProps) => {
       return;
     }
 
+    if (!piiUserUrl) return;
+
     try {
       setIsSubmitting(true);
       const comment = await createComment({
         postId,
         content: newComment
-      });
+      }, piiUserUrl);
       
       setComments([comment, ...comments]);
       setNewComment('');

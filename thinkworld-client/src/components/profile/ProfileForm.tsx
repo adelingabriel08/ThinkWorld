@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { getUserDetails, updateUserProfile, fetchRegions } from '@/lib/api';
+import { getUserDetails, updateUserProfile, fetchRegions, getRouterUserRegionId } from '@/lib/api';
 import { User } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { usePiiUserUrl } from '@/lib/usePiiUserUrl';
 
 const ProfileForm = () => {
+  const { piiUserUrl, loading: piiLoading, error: piiError } = usePiiUserUrl();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -18,18 +20,29 @@ const ProfileForm = () => {
     imageUrl: '',
     regionId: '',
   });
-  const [regions, setRegions] = useState<{ id: string; name: string }[]>([]);
+  const [regions, setRegions] = useState<{ id: string; name: string, topLevelDomain: string }[]>([]);
 
   useEffect(() => {
     const loadUserProfile = async () => {
+      if (!piiUserUrl) return;
       try {
-        const userData = await getUserDetails();
+        const userData = await getUserDetails(piiUserUrl);
+        let regionId = userData.regionId || '';
+        // Fetch regionId from router if not present
+        if (!regionId) {
+          try {
+            const routerRegionId = await getRouterUserRegionId({ skipRedirectIfProfile: true });
+            if (routerRegionId) regionId = routerRegionId;
+          } catch (e) {
+            // Optionally handle error
+          }
+        }
         setUser(userData);
         setFormData({
           firstName: userData.firstName || '',
           lastName: userData.lastName || '',
           imageUrl: userData.imageUrl || '',
-          regionId: userData.regionId || '',
+          regionId: regionId,
         });
       } catch (error) {
         toast.error('Failed to load profile');
@@ -38,13 +51,15 @@ const ProfileForm = () => {
       }
     };
 
-    loadUserProfile();
+    if (piiUserUrl) {
+      loadUserProfile();
+    }
 
     // Fetch regions for selection
     fetchRegions()
       .then(setRegions)
       .catch(() => {/* Optionally log error */});
-  }, []);
+  }, [piiUserUrl]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -61,7 +76,7 @@ const ProfileForm = () => {
 
     try {
       setIsSubmitting(true);
-      const updatedUser = await updateUserProfile(formData);
+      const updatedUser = await updateUserProfile({...formData, regionUrl: regions.find(r => r.id === formData.regionId)?.topLevelDomain});
       setUser(updatedUser);
       toast.success('Profile updated successfully');
     } catch (error) {
@@ -148,8 +163,9 @@ const ProfileForm = () => {
           </div>
           
           <div className="pt-2">
-            <p className="text-sm text-gray-500">Email: {user?.email}</p>
+            <p className="text-sm text-gray-500 font-bold">Email: {user?.email}</p>
             <p className="text-sm text-gray-500">Member since: {new Date(user?.createdAt || '').toLocaleDateString()}</p>
+            {piiUserUrl ? <p className="text-sm text-gray-500">Information is retrieved from: {piiUserUrl}</p> : <></>}
           </div>
         </CardContent>
         

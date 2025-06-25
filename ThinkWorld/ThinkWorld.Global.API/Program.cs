@@ -93,21 +93,21 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<CosmosDbContext>();
-    await dbContext.Database.EnsureCreatedAsync();
-}
+//using (var scope = app.Services.CreateScope())
+//{
+//    var dbContext = scope.ServiceProvider.GetRequiredService<CosmosDbContext>();
+//    await dbContext.Database.EnsureCreatedAsync();
+//}
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
     app.MapOpenApi();
     app.UseSwaggerUI(r =>
     {
         r.SwaggerEndpoint("/openapi/v1.json", "ThinkWorld Global API V1");
     });
-}
+//}
 
 app.UseHttpsRedirection();
 app.UseCors();

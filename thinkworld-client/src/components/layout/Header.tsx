@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, Search, User } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -74,20 +74,12 @@ const Header = () => {
           </nav>
         </div>
         <div className="flex items-center space-x-4">
-          <div className="hidden md:flex relative w-64">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-            <Input
-              placeholder="Search..."
-              className="pl-8 w-full h-9 rounded-md"
-            />
-          </div>
-          <Avatar 
-            className="cursor-pointer"
-            onClick={() => navigate('/profile')}
-          >
-            <AvatarImage src="https://github.com/shadcn.png" />
-            <AvatarFallback>U</AvatarFallback>
-          </Avatar>
+          <Link 
+              to="/profile" 
+              className="px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100"
+            >
+              My profile
+            </Link>
           <Button variant="ghost" size="sm" onClick={logout}>
             Logout
           </Button>

@@ -1,7 +1,6 @@
 // API configuration
-const PII_API_URL = "https://localhost:7152";
-const GLOBAL_API_URL = "https://localhost:7184";
-const ROUTER_API_URL = "https://localhost:7244";
+const GLOBAL_API_URL = "https://app-global-tw-app-dev-use2.azurewebsites.net";
+const ROUTER_API_URL = "https://router.thinkworld.adelinchis.ro";
 
 import { UserManager } from 'oidc-client-ts';
 import oidcConfig from '../oidcConfig';
@@ -18,11 +17,22 @@ export async function getAccessToken() {
   return user.access_token;
 }
 
+export async function getCurrentUserEmail() {
+  const userManager = new UserManager(oidcConfig);
+  const user = await userManager.getUser();
+  
+  if (!user || !user.profile.email) {
+    throw new Error('Not authenticated or no email found');
+  }
+  
+  return user.profile.email;
+}
+
 // User API
-export async function getUserDetails() {
+export async function getUserDetails(piiApiUrl: string) {
   try {
     const token = await getAccessToken();
-    const response = await fetch(`${PII_API_URL}/api/user`, {
+    const response = await fetch(`${piiApiUrl}/api/user`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -54,12 +64,19 @@ export async function updateUserProfile(userData: {
   lastName: string;
   imageUrl?: string;
   regionId?: string;
+  regionUrl: string;
   email?: string;
 }) {
   try {
+    debugger;
+    let userEmail = await getCurrentUserEmail();
+    if (userData.regionId && userEmail) {
+      await addOrUpdateRouterUser({ email: userEmail, regionId: userData.regionId });
+    }
     const token = await getAccessToken();
+    const piiApiUrl = userData.regionUrl;
     // Call Users API
-    const userRes = await fetch(`${PII_API_URL}/api/user`, {
+    const userRes = await fetch(`${piiApiUrl}/api/user`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -74,10 +91,6 @@ export async function updateUserProfile(userData: {
     });
     if (!userRes.ok) throw new Error("Failed to update user profile");
     const updatedUser = await userRes.json();
-    // Also call Router POST user API if regionId and email are present
-    if (userData.regionId && updatedUser.email) {
-      await addOrUpdateRouterUser({ email: updatedUser.email, regionId: userData.regionId });
-    }
     return updatedUser;
   } catch (error) {
     console.error("Error updating user profile:", error);
@@ -199,10 +212,10 @@ export async function deletePost(communityId: string, postId: string) {
 }
 
 // Comments API
-export async function getPostComments(postId: string) {
+export async function getPostComments(postId: string, piiApiUrl: string) {
   try {
     const token = await getAccessToken();
-    const response = await fetch(`${PII_API_URL}/api/post/${postId}/comments`, {
+    const response = await fetch(`${piiApiUrl}/api/post/${postId}/comments`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -215,13 +228,23 @@ export async function getPostComments(postId: string) {
   }
 }
 
-export async function createComment(commentData: {
-  postId: string;
-  content: string;
-}) {
+export async function createRouterComment({ commentId, postId }: { commentId: string; postId: string }) {
+  const token = await getAccessToken();
+  const response = await fetch(`${ROUTER_API_URL}/api/router/comments?commentId=${commentId}&postId=${postId}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!response.ok) throw new Error("Failed to create router comment");
+  return await response.json();
+}
+
+export async function createComment(commentData: { postId: string; content: string }, piiApiUrl: string) {
   try {
     const token = await getAccessToken();
-    const response = await fetch(`${PII_API_URL}/api/comment`, {
+    // First, create the comment in the PII API
+    const response = await fetch(`${piiApiUrl}/api/comment`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -233,18 +256,23 @@ export async function createComment(commentData: {
       }),
     });
     if (!response.ok) throw new Error("Failed to create comment");
-    return await response.json();
+    const createdComment = await response.json();
+    // Now call the router API with the commentId
+    if (createdComment && createdComment.id) {
+      await createRouterComment({ commentId: createdComment.id, postId: commentData.postId });
+    }
+    return createdComment;
   } catch (error) {
     console.error("Error creating comment:", error);
     throw error;
   }
 }
 
-export async function deleteComment(commentId: string) {
+export async function deleteComment(commentId: string, piiApiUrl: string) {
   try {
     const token = await getAccessToken();
     const response = await fetch(
-      `${PII_API_URL}/api/comment/${commentId}`,
+      `${piiApiUrl}/api/comment/${commentId}`,
       {
         method: "DELETE",
         headers: {
@@ -261,12 +289,11 @@ export async function deleteComment(commentId: string) {
 }
 
 // Votes API
-export async function voteOnPost(postId: string, isUpvote: boolean | null) {
+export async function voteOnPost(postId: string, isUpvote: boolean | null, piiApiUrl: string) {
   try {
     const voteValue = isUpvote === null ? null : isUpvote ? 1 : 0;
     const token = await getAccessToken();
-    
-    const response = await fetch(`${PII_API_URL}/api/post/vote`, {
+    const response = await fetch(`${piiApiUrl}/api/post/vote`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -297,7 +324,7 @@ export async function fetchRegions() {
   return Array.isArray(data) ? data : (data.regions || []);
 }
 
-export async function getRouterUserApiUrl(options?: { skipRedirectIfProfile?: boolean }): Promise<string | null> {
+export async function getRouterUserRegionId(options?: { skipRedirectIfProfile?: boolean }): Promise<string | null> {
   let accessToken: string;
   try {
     accessToken = await getAccessToken();
@@ -318,5 +345,54 @@ export async function getRouterUserApiUrl(options?: { skipRedirectIfProfile?: bo
   }
   if (!res.ok) throw new Error("Could not determine user region");
   const routedUser = await res.json();
-  return routedUser.apiUrl || routedUser.userApiUrl || routedUser.regionApiUrl || null;
+  return routedUser.regionId || null;
+}
+
+export async function getAllPostComments(postId: string) {
+  try {
+    const token = await getAccessToken();
+    const routerRes = await fetch(`${ROUTER_API_URL}/api/router/comments/post/${postId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!routerRes.ok) throw new Error("Failed to fetch routed comments metadata");
+    const routedComments = await routerRes.json();
+    if (!Array.isArray(routedComments)) return [];
+
+
+    const regionIdSet = new Set<string>();
+    routedComments.forEach((c: any) => {
+      if (c.regionId) regionIdSet.add(c.regionId);
+    });
+    const regionIds = Array.from(regionIdSet);
+
+
+    const allComments: any[] = [];
+    const regions = await fetchRegions();
+    for (const regionId of regionIds) {
+      const piiApiUrl = regions.find((r: any) => r.id === regionId)?.topLevelDomain;
+      const piiRes = await fetch(`${piiApiUrl}/api/post/${postId}/comments`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (piiRes.ok) {
+        const comments = await piiRes.json();
+        if (Array.isArray(comments)) {
+          allComments.push(...comments);
+        }
+      }
+    }
+    return allComments;
+  } catch (error) {
+    console.error("Error fetching routed post comments:", error);
+    throw error;
+  }
+}
+
+// Helper to get PII API URL for a given regionId
+export async function getPiiApiUrlForRegion(regionId: string): Promise<string> {
+
+  return await getPiiApiUrl();
 }
